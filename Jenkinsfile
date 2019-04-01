@@ -37,6 +37,19 @@ pipeline {
             steps {
                 sh 'yarn test --ci'
             }
+            post {
+                always {
+                    junit 'reports/*.xml'
+                    publishHTML(target: [
+                            allowMissing         : true,
+                            alwaysLinkToLastBuild: true,
+                            keepAll              : true,
+                            reportDir            : 'reports',
+                            reportFiles          : '**/*.html',
+                            reportName           : 'Test Report'
+                    ])
+                }
+            }
         }
     }
 }
