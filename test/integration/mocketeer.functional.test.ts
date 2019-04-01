@@ -1,18 +1,23 @@
 import {Mocketeer} from "../../build";
 import {startServer} from "./utils/server";
-import {launch, Page} from "puppeteer";
+import {Browser, launch, Page} from "puppeteer";
 
 describe('Mocketeer functional', () => {
 
+    let browser: Browser;
     let page: Page;
     let mocketeer: Mocketeer;
 
     beforeAll(async () => {
         await startServer(9000);
+        browser = await launch({
+            headless: true,
+            devtools: false,
+            args: ['--no-sandbox']
+        });
     });
 
     beforeEach(async () => {
-        const browser = await launch({ headless: true, devtools: false});
         page = await browser.newPage();
         await page.goto('http://localhost:9000');
     });
