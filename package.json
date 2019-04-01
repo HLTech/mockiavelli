@@ -1,0 +1,22 @@
+{
+  "name": "@hltech/mocketeer",
+  "version": "0.0.0-development",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.11",
+    "@types/puppeteer": "^1.12.3",
+    "jest": "^24.5.0",
+    "puppeteer": "1.13",
+    "ts-jest": "^24.0.1",
+    "typescript": "^3.4.1"
+  },
+  "dependencies": {
+    "jest-junit": "^6.3.0"
+  }
+}

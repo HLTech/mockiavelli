@@ -1,0 +1,7 @@
+{
+  "rootDir": "../../build",
+  "include": [
+    "**/*.ts",
+    "../../build/**/*"
+  ]
+}
