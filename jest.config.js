@@ -1,5 +1,7 @@
 module.exports = {
 
+    collectCoverageFrom: ["./src/**/*.ts"],
+
     // Configure jest-junit reporter on CI. Otherwise use only default reporter
     reporters: [
         "default",
@@ -15,15 +17,20 @@ module.exports = {
 
     projects: [{
         displayName: "unit",
-        rootDir: './test/unit',
         preset: 'ts-jest',
         testEnvironment: 'node',
-
+        roots: ['test/unit'],
     }, {
         displayName: "int",
-        rootDir: './test/integration',
         preset: 'ts-jest',
         testEnvironment: 'node',
-
+        roots: ['test/integration'],
+        globalSetup: './test/integration/utils/global-setup.ts',
+        globalTeardown: './test/integration/utils/global-teardown.ts',
+        globals: {
+            'ts-jest': {
+                tsConfig: 'test/integration/tsconfig.json'
+            }
+        }
     }]
 }

@@ -4,6 +4,7 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
+import {Server} from "http";
 
 // maps file extention to MIME types
 const mimeType = {
@@ -32,7 +33,6 @@ function respondNotFound(res, pathname) {
 }
 
 function handler(req, res) {
-    console.log(`${req.method} ${req.url}`);
 
     // parse URL
     const parsedUrl = url.parse(req.url);
@@ -75,19 +75,20 @@ function handler(req, res) {
 
 }
 
-export async function startServer(port = 9000) {
+let server: Server;
 
-    const createServer = util.promisify((port, err) => http.createServer(handler).listen(port, err));
+export async function startServer(port = 9000): Promise<any> {
+    if (server) return;
+    server = http.createServer(handler);
+    await util.promisify(server.listen.bind(server))(port);
+    console.log(`Server listening on port ${port}`);
+}
 
-    try {
-        return await createServer(port)
-    } catch (err) {
-        console.error(err);
-    } finally {
-        console.log(`Server listening on port ${port}`);
+export async function stopServer(): Promise<void> {
+    if (server) {
+        server.close();
+        server = null;
     }
-
-
 }
 
 if (require.main === module) {

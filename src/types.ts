@@ -14,6 +14,8 @@ export interface InterceptedRequest {
     path: string;
     url: string;
     method: string;
+    body: any;
+    rawBody: string | undefined;
     headers: Record<string, string>;
     type: ResourceType;
 }

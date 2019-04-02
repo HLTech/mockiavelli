@@ -1,6 +1,7 @@
-import {Mocketeer} from "../../build";
-import {startServer} from "./utils/server";
+import {Mocketeer} from "../../src";
 import {Browser, launch, Page} from "puppeteer";
+
+const PORT = 9000;
 
 describe('Mocketeer functional', () => {
 
@@ -9,7 +10,6 @@ describe('Mocketeer functional', () => {
     let mocketeer: Mocketeer;
 
     beforeAll(async () => {
-        await startServer(9000);
         browser = await launch({
             headless: true,
             devtools: false,
@@ -17,25 +17,27 @@ describe('Mocketeer functional', () => {
         });
     });
 
+    afterAll(async () => {
+        await browser.close();
+    });
+
     beforeEach(async () => {
+
+        // Setup new page (tab)
         page = await browser.newPage();
-        await page.goto('http://localhost:9000');
+        await page.goto(`http://localhost:${PORT}`);
+
+        // Instantiate Mocketeer
+        mocketeer = new Mocketeer({origin: `http://localhost:${PORT}`});
+        await mocketeer.activate(page);
+
     });
 
     afterEach(async () => {
-        try {
-            await page.close();
-        } catch (e) {
-
-        }
+        await page.close();
     });
 
-    beforeEach(async () => {
-        mocketeer = new Mocketeer({origin: 'http://localhost:9000'});
-        await mocketeer.activate(page)
-    });
-
-    it('mocks GET request with JSON payload' , async () => {
+    it('mocks fetch GET request' , async () => {
         await mocketeer.addRestMock({
             method: 'GET', path: '/foo'
         }, {
@@ -44,12 +46,100 @@ describe('Mocketeer functional', () => {
         });
 
         await page.evaluate(() => {
-            fetch('/foo').then(res => res.json())
-                .then((data) => document.querySelector('body').innerHTML = data.payload);
+            fetch('/foo')
+                .then(res => res.json())
+                .then((data) => document.body.innerHTML = data.payload);
         });
 
         await page.waitFor(100);
-        expect(await page.evaluate(() => document.querySelector("body").innerHTML)).toEqual('OK')
+        expect(await page.evaluate(() => document.body.innerHTML)).toEqual('OK');
     });
+
+    it('mocks fetch POST request ', async () => {
+        await mocketeer.addRestMock({
+            method: 'POST',
+            path: '/foo'
+        }, {
+            status: 200,
+            body: {payload: "OK"}
+        });
+
+        await page.evaluate(() => {
+            fetch("/foo", {method: 'POST'})
+                .then(res => res.json())
+                .then((data) => document.body.innerHTML = data.payload);
+        });
+
+        await page.waitFor(100);
+        expect(await page.evaluate(() => document.body.innerHTML)).toEqual('OK')
+    });
+
+    it('mocks multiple requests' , async () => {
+        await mocketeer.addRestMock({
+            method: 'GET', path: '/foo'
+        }, {
+            status: 200,
+            body: {}
+        });
+
+        await page.evaluate(() => {
+            fetch('/foo').then(() => document.body.innerHTML += '1');
+            fetch('/foo').then(() => document.body.innerHTML += '2');
+        });
+
+        await page.waitFor(100);
+        expect(await page.evaluate(() => document.body.innerHTML.trim())).toEqual('12');
+    });
+
+    it('mocks response with status 500' , async () => {
+         await mocketeer.addRestMock({
+            method: 'GET', path: '/foo'
+        }, {
+            status: 500,
+            body: {}
+        });
+
+        await page.evaluate(() => {
+            fetch('/foo').then(response => {
+                document.body.innerHTML = String(response.status)
+            })
+        });
+
+        await page.waitFor(100);
+        expect(await page.evaluate(() => document.body.innerHTML.trim())).toEqual('500');
+    });
+
+    it('records intercepted request', async () => {
+        const mock = await mocketeer.addRestMock({
+            method: 'POST',
+            path: '/foo'
+        }, {
+            status: 200,
+            body: {}
+        });
+
+        await page.evaluate(() => {
+            fetch("/foo", {
+                method: 'POST',
+                body: JSON.stringify({payload: 'ok'}),
+                headers: {
+                    'X-Header': 'FOO'
+                }
+            })
+        });
+
+        expect(mock.getRequest()).toMatchObject({
+            method: 'POST',
+            path: '/foo',
+            body: {payload: 'ok'},
+            rawBody: JSON.stringify({payload: 'ok'}),
+            url: `http://localhost:${PORT}/foo`,
+            headers: {
+                'x-header': 'FOO'
+            }
+        })
+    });
+
+    // it.todo('can check if a mock has not been invoked');
 
 });

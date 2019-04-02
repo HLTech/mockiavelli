@@ -1,10 +1,10 @@
 import {Page, Request, ResourceType} from "puppeteer";
 import {HttpMock} from "./http-mock";
-import {IMock, InterceptedRequest, MockedResponse, RequestFilter} from "./types";
+import {IMock, MockedResponse, RequestFilter} from "./types";
+import {requestToPlainObject} from "./utils";
 
 interface PuppeteerMockOptions {
     origin: string;
-    debug?: boolean;
     interceptedTypes?: ResourceType[];
 }
 
@@ -13,17 +13,14 @@ export class Mocketeer {
     private mocks: IMock[] = [];
 
     private origin: string;
-    private debug: boolean;
 
     private interceptedTypes: ResourceType[];
 
     constructor({
                     origin = 'http://localhost:8080',
-                    debug = false,
                     interceptedTypes = ['xhr', 'fetch', 'websocket', 'eventsource'],
                 }: PuppeteerMockOptions) {
         this.origin = origin;
-        this.debug = debug;
         this.interceptedTypes = interceptedTypes;
     }
 
@@ -43,17 +40,9 @@ export class Mocketeer {
         return mock;
     }
 
-    private log(msg: any): void {
-        if (this.debug) {
-            console.log('[MockManger]', msg);
-        }
-    }
-
     public async interceptor (request: Request): Promise<boolean> {
 
-        this.log(`request ${request.resourceType()} ${request.method()} ${request.url()}`);
-
-        const requestData = this.requestToPlainObject(request);
+        const requestData = requestToPlainObject(request, this.origin);
 
         for (const mock of this.mocks) {
             const isMatched = mock.isMatchingRequest(requestData);
@@ -72,15 +61,6 @@ export class Mocketeer {
 
     };
 
-    private requestToPlainObject(request: Request): InterceptedRequest {
-        return {
-            url: request.url(),
-            path: request.url().replace(this.origin, ''),
-            method: request.method(),
-            headers: request.headers(),
-            type: request.resourceType()
-        }
-    }
 
 }
 
