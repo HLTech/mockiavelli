@@ -1,6 +1,6 @@
 import {Page, Request, ResourceType} from "puppeteer";
 import {HttpMock} from "./http-mock";
-import {IMock, MockedResponse, RequestFilter} from "./types";
+import {MockedResponse, MockOptions, RequestFilter} from "./types";
 import {requestToPlainObject} from "./utils";
 
 interface PuppeteerMockOptions {
@@ -10,7 +10,7 @@ interface PuppeteerMockOptions {
 
 export class Mocketeer {
 
-    private mocks: IMock[] = [];
+    private mocks: HttpMock[] = [];
 
     private origin: string;
 
@@ -26,41 +26,42 @@ export class Mocketeer {
 
     public async activate(page: Page): Promise<void> {
         await page.setRequestInterception(true);
-        page.on('request', (request) => this.interceptor(request));
+        page.on('request', (request) => this.onRequest(request));
     }
 
-    public add<T extends IMock>(mock: T): T {
+    public addRestMock(requestFilter: RequestFilter, mockedResponse: MockedResponse, options?: MockOptions): HttpMock {
+        const mock = new HttpMock(requestFilter, mockedResponse, options);
         this.mocks.push(mock);
         return mock;
     }
 
-    public addRestMock(requestFilter: RequestFilter, mockedResponse: MockedResponse): HttpMock {
-        const mock = new HttpMock(requestFilter, mockedResponse);
-        this.mocks.push(mock);
-        return mock;
+    public removeMock(mock: HttpMock): HttpMock | void {
+        const index = this.mocks.indexOf(mock);
+        if (index > -1) {
+            return this.mocks.splice(index, 1)[0];
+        }
     }
 
-    public async interceptor (request: Request): Promise<boolean> {
+    private async onRequest (request: Request): Promise<void> {
 
         const requestData = requestToPlainObject(request, this.origin);
 
-        for (const mock of this.mocks) {
-            const isMatched = mock.isMatchingRequest(requestData);
+        const sortedMocked = this.mocks.sort(HttpMock.sortByPriority);
 
-            if (isMatched) {
-                await request.respond(mock.getResponseForRequest(requestData));
-                return Promise.resolve(true);
+        for (const mock of sortedMocked) {
+            const response = mock.getResponseForRequest(requestData);
+
+            if (response) {
+                await request.respond(response);
+                return;
             }
         }
 
-        if (this.interceptedTypes.indexOf(request.resourceType()) === -1) {
-            return Promise.resolve(false);
+        if (this.interceptedTypes.indexOf(request.resourceType()) > -1) {
+            console.error(`Unexpected ${request.resourceType()} request ${request.method()} ${request.url()}`);
         }
 
-        throw new Error(`Unexpected ${request.resourceType()} request ${request.method()} ${request.url()}`);
-
     };
-
 
 }
 

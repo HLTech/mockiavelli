@@ -27,3 +27,15 @@ function toJson(data: string | undefined): any | undefined {
         return JSON.parse(data)
     } catch (e) {}
 }
+
+export function waitFor(fn: ()=> boolean): Promise<void> {
+    return new Promise((resolve) => {
+        const intervalId = setInterval(() => {
+            if (fn()) {
+                resolve();
+                clearInterval(intervalId)
+            }
+        });
+    })
+
+}

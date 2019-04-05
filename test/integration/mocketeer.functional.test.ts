@@ -1,5 +1,6 @@
 import {Mocketeer} from "../../src";
 import {Browser, launch, Page} from "puppeteer";
+import {response200Ok, requestGetFoo, requestPostFoo, response200Empty} from "./fixture/mock-fixtures";
 
 const PORT = 9000;
 
@@ -38,12 +39,7 @@ describe('Mocketeer functional', () => {
     });
 
     it('mocks fetch GET request' , async () => {
-        await mocketeer.addRestMock({
-            method: 'GET', path: '/foo'
-        }, {
-            status: 200,
-            body: {payload: "OK"}
-        });
+        await mocketeer.addRestMock(requestGetFoo, response200Ok);
 
         await page.evaluate(() => {
             fetch('/foo')
@@ -52,17 +48,11 @@ describe('Mocketeer functional', () => {
         });
 
         await page.waitFor(100);
-        expect(await page.evaluate(() => document.body.innerHTML)).toEqual('OK');
+        expect(await page.evaluate(() => document.body.innerHTML)).toEqual(response200Ok.body.payload);
     });
 
     it('mocks fetch POST request ', async () => {
-        await mocketeer.addRestMock({
-            method: 'POST',
-            path: '/foo'
-        }, {
-            status: 200,
-            body: {payload: "OK"}
-        });
+        await mocketeer.addRestMock(requestPostFoo, response200Ok);
 
         await page.evaluate(() => {
             fetch("/foo", {method: 'POST'})
@@ -71,16 +61,11 @@ describe('Mocketeer functional', () => {
         });
 
         await page.waitFor(100);
-        expect(await page.evaluate(() => document.body.innerHTML)).toEqual('OK')
+        expect(await page.evaluate(() => document.body.innerHTML)).toEqual(response200Ok.body.payload)
     });
 
     it('mocks multiple requests' , async () => {
-        await mocketeer.addRestMock({
-            method: 'GET', path: '/foo'
-        }, {
-            status: 200,
-            body: {}
-        });
+        await mocketeer.addRestMock(requestGetFoo, response200Empty);
 
         await page.evaluate(() => {
             fetch('/foo').then(() => document.body.innerHTML += '1');
@@ -92,9 +77,7 @@ describe('Mocketeer functional', () => {
     });
 
     it('mocks response with status 500' , async () => {
-         await mocketeer.addRestMock({
-            method: 'GET', path: '/foo'
-        }, {
+         await mocketeer.addRestMock(requestGetFoo, {
             status: 500,
             body: {}
         });
@@ -110,13 +93,7 @@ describe('Mocketeer functional', () => {
     });
 
     it('records intercepted request', async () => {
-        const mock = await mocketeer.addRestMock({
-            method: 'POST',
-            path: '/foo'
-        }, {
-            status: 200,
-            body: {}
-        });
+        const mock = await mocketeer.addRestMock(requestPostFoo, response200Empty);
 
         await page.evaluate(() => {
             fetch("/foo", {
@@ -139,6 +116,68 @@ describe('Mocketeer functional', () => {
             }
         })
     });
+
+    it('notifies when mock was called', async () => {
+        const mock = await mocketeer.addRestMock(requestGetFoo, response200Empty);
+
+        await page.evaluate(() => {
+            fetch('/foo')
+        });
+
+        expect(mock.waitForRequest()).resolves.toBe(undefined);
+
+    });
+
+    it('can set priorities on mocks', async () => {
+
+        const mock = await mocketeer.addRestMock(requestGetFoo, response200Empty);
+
+        const mockWithPriority = await mocketeer.addRestMock(requestGetFoo, response200Empty, {
+            priority: 10
+        });
+
+        await page.evaluate(() => {
+            fetch('/foo')
+        });
+
+        await page.waitFor(100);
+
+        expect(mock.getRequest()).toBeUndefined();
+        expect(mockWithPriority.getRequest()).not.toBeUndefined();
+
+
+    });
+
+    it('can remove mock so it is no longer called', async () => {
+
+        const mock = await mocketeer.addRestMock(requestGetFoo, {
+            status: 200,
+            body: {id: 1}
+        });
+
+        await page.evaluate(() => {
+            fetch('/foo')
+                .then(res => res.json())
+                .then((data) => document.body.innerHTML = data.id);
+        });
+
+        await page.waitForFunction(() => document.body.innerHTML.trim() === '1');
+
+        mocketeer.removeMock(mock);
+
+        await mocketeer.addRestMock(requestGetFoo, {
+            status: 200,
+            body: {id: 2}
+        });
+
+        await page.evaluate(() => {
+            fetch('/foo')
+                .then(res => res.json())
+                .then((data) => document.body.innerHTML = data.id);
+        });
+
+        await page.waitForFunction(() => document.body.innerHTML.trim() === '2');
+    })
 
     // it.todo('can check if a mock has not been invoked');
 

@@ -7,6 +7,7 @@ export interface RequestFilter {
 
 export interface MockedResponse {
     status: number;
+    headers?: Record<string, string>,
     body: any;
 }
 
@@ -14,16 +15,18 @@ export interface InterceptedRequest {
     path: string;
     url: string;
     method: string;
-    body: any;
-    rawBody: string | undefined;
+    body?: any;
+    rawBody?: string | undefined;
     headers: Record<string, string>;
     type: ResourceType;
 }
 
-export interface IMock {
-    isMatchingRequest(request: InterceptedRequest): boolean;
-
-    getRequest(n: number): InterceptedRequest;
-
-    getResponseForRequest(request: InterceptedRequest): MockedResponse;
+export interface MockOptions {
+    priority: number
 }
+
+export interface IMock {
+    getRequest(n: number): InterceptedRequest;
+    getResponseForRequest(request: InterceptedRequest): MockedResponse | null;
+}
+
