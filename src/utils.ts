@@ -1,25 +1,19 @@
+import { parse } from 'url';
 import { Request } from 'puppeteer';
 import { InterceptedRequest } from './types';
 
-export function requestToPlainObject(
-    request: Request,
-    requestOrigin: string
-): InterceptedRequest {
-    const origin = requestOrigin.endsWith('/')
-        ? requestOrigin.slice(0, -1)
-        : requestOrigin;
+export function requestToPlainObject(request: Request): InterceptedRequest {
     const url = request.url();
-    const path = url.replace(origin, '');
     const rawBody = request.postData();
-
+    const urlObject = parse(url, true);
     return {
         url,
-        path,
         rawBody,
         body: toJson(rawBody),
         method: request.method(),
         headers: request.headers(),
         type: request.resourceType(),
+        ...urlObject,
     };
 }
 

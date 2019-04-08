@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`utils requestToPlainObject returns serialized request object 1`] = `
+Object {
+  "auth": null,
+  "body": Object {
+    "foo": "bar",
+  },
+  "hash": "#baz",
+  "headers": Object {
+    "header": "header",
+  },
+  "host": "example.com:8000",
+  "hostname": "example.com",
+  "href": "http://example.com:8000/some/path?foo=bar#baz",
+  "method": "GET",
+  "path": "/some/path?foo=bar",
+  "pathname": "/some/path",
+  "port": "8000",
+  "protocol": "http:",
+  "query": Object {
+    "foo": "bar",
+  },
+  "rawBody": "{\\"foo\\":\\"bar\\"}",
+  "search": "?foo=bar",
+  "slashes": true,
+  "type": "xhr",
+  "url": "http://example.com:8000/some/path?foo=bar#baz",
+}
+`;

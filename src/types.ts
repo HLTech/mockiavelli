@@ -1,8 +1,9 @@
 import { ResourceType } from 'puppeteer';
+import { UrlWithParsedQuery } from 'url';
 
 export interface RequestFilter {
-    method?: string;
-    path?: string;
+    method: string;
+    url: string;
 }
 
 export interface MockedResponse {
@@ -11,8 +12,7 @@ export interface MockedResponse {
     body: any;
 }
 
-export interface InterceptedRequest {
-    path: string;
+export interface InterceptedRequest extends UrlWithParsedQuery {
     url: string;
     method: string;
     body?: any;
@@ -27,5 +27,8 @@ export interface MockOptions {
 
 export interface IMock {
     getRequest(n: number): InterceptedRequest;
-    getResponseForRequest(request: InterceptedRequest): MockedResponse | null;
+    getResponseForRequest(
+        request: InterceptedRequest,
+        origin: string
+    ): MockedResponse | null;
 }

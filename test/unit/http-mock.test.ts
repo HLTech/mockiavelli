@@ -3,7 +3,7 @@ import { HttpMock } from '../../src';
 test('.getResponseForRequest matches GET request', () => {
     const mock = new HttpMock(
         {
-            path: '/foo',
+            url: '/foo',
             method: 'GET',
         },
         {
@@ -13,19 +13,23 @@ test('.getResponseForRequest matches GET request', () => {
     );
 
     expect(
-        mock.getResponseForRequest({
-            path: '/foo',
-            method: 'GET',
-            url: 'http://example/foo',
-            type: 'xhr',
-            headers: {},
-        })
+        mock.getResponseForRequest(
+            {
+                path: '/foo',
+                method: 'GET',
+                url: 'http://example/foo',
+                type: 'xhr',
+                headers: {},
+                query: {},
+            },
+            'http://example'
+        )
     ).not.toBeNull();
 });
 
 test('.sortByPriroty can be used to correctly sort mocks', () => {
     const filter = {
-        path: '/foo',
+        url: '/foo',
         method: 'GET',
     };
 

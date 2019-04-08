@@ -9,7 +9,7 @@ import {
 import { waitFor } from './utils';
 
 export class HttpMock implements IMock {
-    private requestFilter: RequestFilter = {};
+    private requestFilter: RequestFilter;
     private mockedResponse: MockedResponse;
     private requests: Array<InterceptedRequest> = [];
     private options: MockOptions = {
@@ -35,9 +35,10 @@ export class HttpMock implements IMock {
     }
 
     public getResponseForRequest(
-        request: InterceptedRequest
+        request: InterceptedRequest,
+        origin: string
     ): MockedResponse | null {
-        if (!this.isMatchingRequest(request)) {
+        if (!this.isMatchingRequest(request, origin)) {
             return null;
         }
 
@@ -57,7 +58,10 @@ export class HttpMock implements IMock {
 
     private static allowedTypes: ResourceType[] = ['fetch', 'xhr'];
 
-    private isMatchingRequest(request: InterceptedRequest): boolean {
+    private isMatchingRequest(
+        request: InterceptedRequest,
+        origin: string
+    ): boolean {
         if (HttpMock.allowedTypes.indexOf(request.type) === -1) {
             return false;
         }
@@ -66,8 +70,14 @@ export class HttpMock implements IMock {
             return false;
         }
 
-        if (request.path !== this.requestFilter.path) {
-            return false;
+        if (this.requestFilter.url.startsWith('/')) {
+            if (origin + this.requestFilter.url !== request.url) {
+                return false;
+            }
+        } else {
+            if (request.url !== this.requestFilter.url) {
+                return false;
+            }
         }
 
         return true;

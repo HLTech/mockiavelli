@@ -9,7 +9,7 @@ import {
 
 const PORT = 9000;
 
-describe('Mocketeer functional', () => {
+describe('Mocketeer intergation', () => {
     let browser: Browser;
     let page: Page;
     let mocketeer: Mocketeer;
@@ -32,7 +32,7 @@ describe('Mocketeer functional', () => {
         await page.goto(`http://localhost:${PORT}`);
 
         // Instantiate Mocketeer
-        mocketeer = new Mocketeer({ origin: `http://localhost:${PORT}` });
+        mocketeer = new Mocketeer();
         await mocketeer.activate(page);
     });
 

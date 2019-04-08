@@ -2,12 +2,12 @@ import { RequestFilter } from '../../../src/types';
 
 export const requestGetFoo: RequestFilter = {
     method: 'GET',
-    path: '/foo',
+    url: '/foo',
 };
 
 export const requestPostFoo: RequestFilter = {
     method: 'POST',
-    path: '/foo',
+    url: '/foo',
 };
 
 export const response200Empty = {

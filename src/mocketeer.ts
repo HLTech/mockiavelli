@@ -1,27 +1,13 @@
+import { parse } from 'url';
 import { Page, Request, ResourceType } from 'puppeteer';
 import { HttpMock } from './http-mock';
 import { MockedResponse, MockOptions, RequestFilter } from './types';
 import { printRequest, requestToPlainObject } from './utils';
 
-interface PuppeteerMockOptions {
-    origin: string;
-    interceptedTypes?: ResourceType[];
-}
+const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
 
 export class Mocketeer {
     private mocks: HttpMock[] = [];
-
-    private origin: string;
-
-    private interceptedTypes: ResourceType[];
-
-    constructor({
-        origin = 'http://localhost:8080',
-        interceptedTypes = ['xhr', 'fetch', 'websocket', 'eventsource'],
-    }: PuppeteerMockOptions) {
-        this.origin = origin;
-        this.interceptedTypes = interceptedTypes;
-    }
 
     public async activate(page: Page): Promise<void> {
         await page.setRequestInterception(true);
@@ -31,7 +17,7 @@ export class Mocketeer {
     public addRestMock(
         requestFilter: RequestFilter,
         mockedResponse: MockedResponse,
-        options?: MockOptions
+        options?: Partial<MockOptions>
     ): HttpMock {
         const mock = new HttpMock(requestFilter, mockedResponse, options);
         this.mocks.push(mock);
@@ -46,12 +32,27 @@ export class Mocketeer {
     }
 
     private async onRequest(request: Request): Promise<void> {
-        const requestData = requestToPlainObject(request, this.origin);
+        // Do not intercept non xhr/fetch requests
+        if (interceptedTypes.indexOf(request.resourceType()) === -1) {
+            try {
+                return await request.continue();
+            } catch (e) {
+                // Request could be already handled so ignore this error
+                return;
+            }
+        }
 
-        const sortedMocked = this.mocks.sort(HttpMock.sortByPriority);
+        // Serialize request
+        const requestData = requestToPlainObject(request);
 
-        for (const mock of sortedMocked) {
-            const response = mock.getResponseForRequest(requestData);
+        // Obtain request url from originating frame url
+        const originFrame = request.frame();
+        const originFrameUrl = originFrame ? await originFrame.url() : '';
+        const { protocol, host } = parse(originFrameUrl);
+        const origin = `${protocol}//${host}`;
+
+        for (const mock of this.mocks.sort(HttpMock.sortByPriority)) {
+            const response = mock.getResponseForRequest(requestData, origin);
 
             if (response) {
                 try {
@@ -65,25 +66,14 @@ export class Mocketeer {
                     console.error(e);
                     throw e;
                 }
-
-                return;
             }
         }
 
-        if (this.interceptedTypes.indexOf(request.resourceType()) > -1) {
-            console.error(
-                `Mock not found for request: ${printRequest(request)}`
-            );
-            return request.respond({
-                status: 404,
-                body: 'No mock provided for request',
-            });
-        }
-
-        try {
-            await request.continue();
-        } catch (e) {
-            // Request could be already handled so ignore this error
-        }
+        // Request was not matched - log error and return 404
+        console.error(`Mock not found for request: ${printRequest(request)}`);
+        return request.respond({
+            status: 404,
+            body: 'No mock provided for request',
+        });
     }
 }

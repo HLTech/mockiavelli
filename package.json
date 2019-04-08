@@ -19,5 +19,8 @@
         "puppeteer": "1.13",
         "ts-jest": "^24.0.1",
         "typescript": "^3.4.1"
-    }
+    },
+    "files": [
+        "dist"
+    ]
 }

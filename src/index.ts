@@ -1,6 +1,3 @@
-export { Mocketeer } from './mocketeer';
-export { HttpMock } from './http-mock';
-
-(async () => {
-    await Promise;
-})();
+export * from './mocketeer';
+export * from './http-mock';
+export * from './types';

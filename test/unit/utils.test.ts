@@ -6,31 +6,20 @@ describe('utils', () => {
         test('returns serialized request object', () => {
             const req = createMockRequest();
             req.postData.mockReturnValue(JSON.stringify({ foo: 'bar' }));
-            req.url.mockReturnValue('http://origin:8000/some/path');
+            req.url.mockReturnValue(
+                'http://example.com:8000/some/path?foo=bar#baz'
+            );
             req.method.mockReturnValue('GET');
             req.headers.mockReturnValue({ header: 'header' });
             req.resourceType.mockReturnValue('xhr');
-
-            expect(requestToPlainObject(req, 'http://origin:8000')).toEqual({
-                url: 'http://origin:8000/some/path',
-                path: '/some/path',
-                method: 'GET',
-                headers: {
-                    header: 'header',
-                },
-                type: 'xhr',
-                body: { foo: 'bar' },
-                rawBody: JSON.stringify({ foo: 'bar' }),
-            });
+            expect(requestToPlainObject(req)).toMatchSnapshot();
         });
 
         test('returns only rawBody without body if postData() returns non-JSON string', () => {
             const req = createMockRequest();
             req.postData.mockReturnValue('somestring');
 
-            expect(
-                requestToPlainObject(req, 'http://origin:8000')
-            ).toMatchObject({
+            expect(requestToPlainObject(req)).toMatchObject({
                 body: undefined,
                 rawBody: 'somestring',
             });
@@ -40,9 +29,7 @@ describe('utils', () => {
             const req = createMockRequest();
             req.url.mockReturnValue('http://origin:8000/some/path');
 
-            expect(
-                requestToPlainObject(req, 'http://origin:8000/')
-            ).toMatchObject({
+            expect(requestToPlainObject(req)).toMatchObject({
                 url: 'http://origin:8000/some/path',
                 path: '/some/path',
             });
