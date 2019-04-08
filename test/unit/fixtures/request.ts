@@ -1,4 +1,4 @@
-import {Request} from "puppeteer";
+import { Request } from 'puppeteer';
 
 export const createMockRequest = (): jest.Mocked<Request> => ({
     postData: jest.fn().mockReturnValue(''),
@@ -11,11 +11,11 @@ export const createMockRequest = (): jest.Mocked<Request> => ({
     failure: jest.fn(),
     isNavigationRequest: jest.fn(),
     frame: jest.fn(),
-    redirectChain:jest.fn(),
+    redirectChain: jest.fn(),
     respond: jest.fn(),
-    response: jest.fn()
+    response: jest.fn(),
 });
 
 const a = createMockRequest();
 
-a.headers.mockReturnValue({a: ''})
+a.headers.mockReturnValue({ a: '' });

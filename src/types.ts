@@ -1,4 +1,4 @@
-import {ResourceType} from "puppeteer";
+import { ResourceType } from 'puppeteer';
 
 export interface RequestFilter {
     method?: string;
@@ -7,7 +7,7 @@ export interface RequestFilter {
 
 export interface MockedResponse {
     status: number;
-    headers?: Record<string, string>,
+    headers?: Record<string, string>;
     body: any;
 }
 
@@ -22,11 +22,10 @@ export interface InterceptedRequest {
 }
 
 export interface MockOptions {
-    priority: number
+    priority: number;
 }
 
 export interface IMock {
     getRequest(n: number): InterceptedRequest;
     getResponseForRequest(request: InterceptedRequest): MockedResponse | null;
 }
-

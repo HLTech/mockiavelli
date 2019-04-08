@@ -1,3 +1,3 @@
-import {stopServer} from "./server";
+import { stopServer } from './server';
 
 export default async () => await stopServer();

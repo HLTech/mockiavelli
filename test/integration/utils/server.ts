@@ -4,7 +4,7 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
-import {Server} from "http";
+import { Server } from 'http';
 
 // maps file extention to MIME types
 const mimeType = {
@@ -21,7 +21,7 @@ const mimeType = {
     '.pdf': 'application/pdf',
     '.doc': 'application/msword',
     '.eot': 'appliaction/vnd.ms-fontobject',
-    '.ttf': 'aplication/font-sfnt'
+    '.ttf': 'aplication/font-sfnt',
 };
 
 const DIR = '../fixture';
@@ -33,7 +33,6 @@ function respondNotFound(res, pathname) {
 }
 
 function handler(req, res) {
-
     // parse URL
     const parsedUrl = url.parse(req.url);
 
@@ -41,18 +40,20 @@ function handler(req, res) {
     // Avoid https://en.wikipedia.org/wiki/Directory_traversal_attack
     // e.g curl --path-as-is http://localhost:9000/../fileInDanger.txt
     // by limiting the path to current directory only
-    const sanitizePath = path.normalize(parsedUrl.pathname).replace(/^(\.\.[\/\\])+/, '');
+    const sanitizePath = path
+        .normalize(parsedUrl.pathname)
+        .replace(/^(\.\.[\/\\])+/, '');
     let pathname = path.join(__dirname, DIR, sanitizePath);
 
     // check if path exists
-    if(!fs.existsSync(pathname)) {
+    if (!fs.existsSync(pathname)) {
         return respondNotFound(res, pathname);
     }
 
     // if is a directory, then look for index.html
     if (fs.statSync(pathname).isDirectory()) {
         pathname += '/index.html';
-        if(!fs.existsSync(pathname)) {
+        if (!fs.existsSync(pathname)) {
             return respondNotFound(res, pathname);
         }
     }
@@ -70,9 +71,8 @@ function handler(req, res) {
     // based on the URL path, extract the file extention. e.g. .js, .doc, ...
     const ext = path.parse(pathname).ext;
     // if the file is found, set Content-type and send data
-    res.setHeader('Content-type', mimeType[ext] || 'text/plain' );
+    res.setHeader('Content-type', mimeType[ext] || 'text/plain');
     res.end(data);
-
 }
 
 let server: Server;
@@ -95,4 +95,3 @@ if (require.main === module) {
     const port = parseInt(process.argv[2]) || undefined;
     startServer(port);
 }
-

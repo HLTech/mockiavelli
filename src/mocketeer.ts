@@ -1,7 +1,7 @@
-import {Page, Request, ResourceType} from "puppeteer";
-import {HttpMock} from "./http-mock";
-import {MockedResponse, MockOptions, RequestFilter} from "./types";
-import {requestToPlainObject} from "./utils";
+import { Page, Request, ResourceType } from 'puppeteer';
+import { HttpMock } from './http-mock';
+import { MockedResponse, MockOptions, RequestFilter } from './types';
+import { requestToPlainObject } from './utils';
 
 interface PuppeteerMockOptions {
     origin: string;
@@ -9,7 +9,6 @@ interface PuppeteerMockOptions {
 }
 
 export class Mocketeer {
-
     private mocks: HttpMock[] = [];
 
     private origin: string;
@@ -17,19 +16,23 @@ export class Mocketeer {
     private interceptedTypes: ResourceType[];
 
     constructor({
-                    origin = 'http://localhost:8080',
-                    interceptedTypes = ['xhr', 'fetch', 'websocket', 'eventsource'],
-                }: PuppeteerMockOptions) {
+        origin = 'http://localhost:8080',
+        interceptedTypes = ['xhr', 'fetch', 'websocket', 'eventsource'],
+    }: PuppeteerMockOptions) {
         this.origin = origin;
         this.interceptedTypes = interceptedTypes;
     }
 
     public async activate(page: Page): Promise<void> {
         await page.setRequestInterception(true);
-        page.on('request', (request) => this.onRequest(request));
+        page.on('request', request => this.onRequest(request));
     }
 
-    public addRestMock(requestFilter: RequestFilter, mockedResponse: MockedResponse, options?: MockOptions): HttpMock {
+    public addRestMock(
+        requestFilter: RequestFilter,
+        mockedResponse: MockedResponse,
+        options?: MockOptions
+    ): HttpMock {
         const mock = new HttpMock(requestFilter, mockedResponse, options);
         this.mocks.push(mock);
         return mock;
@@ -42,8 +45,7 @@ export class Mocketeer {
         }
     }
 
-    private async onRequest (request: Request): Promise<void> {
-
+    private async onRequest(request: Request): Promise<void> {
         const requestData = requestToPlainObject(request, this.origin);
 
         const sortedMocked = this.mocks.sort(HttpMock.sortByPriority);
@@ -58,10 +60,9 @@ export class Mocketeer {
         }
 
         if (this.interceptedTypes.indexOf(request.resourceType()) > -1) {
-            console.error(`Unexpected ${request.resourceType()} request ${request.method()} ${request.url()}`);
+            console.error(
+                `Unexpected ${request.resourceType()} request ${request.method()} ${request.url()}`
+            );
         }
-
-    };
-
+    }
 }
-

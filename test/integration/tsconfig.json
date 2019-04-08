@@ -1,10 +1,7 @@
 {
-  "extends": "../../tsconfig",
-  "compilerOptions": {
-    "strict": false
-  },
-  "include": [
-    "**/*.ts",
-    "../../src/**/*"
-  ]
+    "extends": "../../tsconfig",
+    "compilerOptions": {
+        "strict": false
+    },
+    "include": ["**/*.ts", "../../src/**/*"]
 }
