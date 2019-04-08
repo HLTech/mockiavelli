@@ -42,3 +42,7 @@ export function waitFor(fn: () => boolean): Promise<void> {
         });
     });
 }
+
+export function printRequest(request: Request): string {
+    return `${request.resourceType()} ${request.method()} ${request.url()}`;
+}

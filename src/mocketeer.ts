@@ -1,7 +1,7 @@
 import { Page, Request, ResourceType } from 'puppeteer';
 import { HttpMock } from './http-mock';
 import { MockedResponse, MockOptions, RequestFilter } from './types';
-import { requestToPlainObject } from './utils';
+import { printRequest, requestToPlainObject } from './utils';
 
 interface PuppeteerMockOptions {
     origin: string;
@@ -54,15 +54,36 @@ export class Mocketeer {
             const response = mock.getResponseForRequest(requestData);
 
             if (response) {
-                await request.respond(response);
+                try {
+                    return await request.respond(response);
+                } catch (e) {
+                    console.error(
+                        `Failed to reply with mocked response for ${printRequest(
+                            request
+                        )}`
+                    );
+                    console.error(e);
+                    throw e;
+                }
+
                 return;
             }
         }
 
         if (this.interceptedTypes.indexOf(request.resourceType()) > -1) {
             console.error(
-                `Unexpected ${request.resourceType()} request ${request.method()} ${request.url()}`
+                `Mock not found for request: ${printRequest(request)}`
             );
+            return request.respond({
+                status: 404,
+                body: 'No mock provided for request',
+            });
+        }
+
+        try {
+            await request.continue();
+        } catch (e) {
+            // Request could be already handled so ignore this error
         }
     }
 }
