@@ -26,10 +26,18 @@ function toJson(data: string | undefined): any | undefined {
     } catch (e) {}
 }
 
-export function waitFor(fn: () => boolean): Promise<void> {
-    return new Promise(resolve => {
+export function waitFor(fn: () => boolean, timeout = 100): Promise<void> {
+    const timeStart = Date.now();
+    return new Promise((resolve, reject) => {
         const intervalId = setInterval(() => {
-            if (fn()) {
+            if (Date.now() - timeStart > timeout) {
+                clearInterval(intervalId);
+                return reject(
+                    new Error(
+                        `waitFor timeout - provided function did not return true in ${timeout}ms`
+                    )
+                );
+            } else if (fn()) {
                 resolve();
                 clearInterval(intervalId);
             }

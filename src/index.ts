@@ -1,3 +1,3 @@
 export * from './mocketeer';
-export * from './http-mock';
+export * from './rest-mock';
 export * from './types';

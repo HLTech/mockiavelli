@@ -1,7 +1,7 @@
-import { HttpMock } from '../../src';
+import { RestMock } from '../../src';
 
 test('.getResponseForRequest matches GET request', () => {
-    const mock = new HttpMock(
+    const mock = new RestMock(
         {
             url: '/foo',
             method: 'GET',
@@ -38,27 +38,27 @@ test('.sortByPriroty can be used to correctly sort mocks', () => {
         body: {},
     };
 
-    const mockDefault = new HttpMock(filter, response);
-    const mock10 = new HttpMock(filter, response, {
+    const mockDefault = new RestMock(filter, response);
+    const mock10 = new RestMock(filter, response, {
         priority: 10,
     });
-    const mock5 = new HttpMock(filter, response, {
+    const mock5 = new RestMock(filter, response, {
         priority: 5,
     });
 
-    expect([mockDefault, mock10, mock5].sort(HttpMock.sortByPriority)).toEqual([
+    expect([mockDefault, mock10, mock5].sort(RestMock.sortByPriority)).toEqual([
         mock10,
         mock5,
         mockDefault,
     ]);
 
-    expect([mockDefault, mock5, mock10].sort(HttpMock.sortByPriority)).toEqual([
+    expect([mockDefault, mock5, mock10].sort(RestMock.sortByPriority)).toEqual([
         mock10,
         mock5,
         mockDefault,
     ]);
 
-    expect([mock10, mock5, mockDefault].sort(HttpMock.sortByPriority)).toEqual([
+    expect([mock10, mock5, mockDefault].sort(RestMock.sortByPriority)).toEqual([
         mock10,
         mock5,
         mockDefault,

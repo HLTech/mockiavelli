@@ -49,4 +49,24 @@ describe('utils', () => {
             undefined
         );
     });
+
+    test('waitFor throws after 100ms by default', async () => {
+        expect.assertions(1);
+        const now = Date.now();
+        try {
+            await waitFor(() => Date.now() > now + 150);
+        } catch (e) {
+            expect(e).not.toBeFalsy();
+        }
+    });
+
+    test('waitFor throws after provided timeout', async () => {
+        expect.assertions(1);
+        const now = Date.now();
+        try {
+            await waitFor(() => Date.now() > now + 55, 50);
+        } catch (e) {
+            expect(e).not.toBeFalsy();
+        }
+    });
 });

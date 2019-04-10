@@ -118,7 +118,7 @@ describe('Mocketeer intergation', () => {
             });
         });
 
-        expect(mock.getRequest()).toMatchObject({
+        await expect(mock.getRequest()).resolves.toMatchObject({
             method: 'POST',
             path: '/foo',
             body: { payload: 'ok' },
@@ -137,10 +137,12 @@ describe('Mocketeer intergation', () => {
         );
 
         await page.evaluate(() => {
-            fetch('/foo');
+            setTimeout(() => {
+                fetch('/foo');
+            }, 10);
         });
 
-        expect(mock.waitForRequest()).resolves.toBe(undefined);
+        await expect(mock.getRequest()).resolves.toBeTruthy();
     });
 
     it('can set priorities on mocks', async () => {
@@ -163,8 +165,10 @@ describe('Mocketeer intergation', () => {
 
         await page.waitFor(100);
 
-        expect(mock.getRequest()).toBeUndefined();
-        expect(mockWithPriority.getRequest()).not.toBeUndefined();
+        await expect(mock.getRequest()).resolves.toBeUndefined();
+        await expect(
+            mockWithPriority.getRequest()
+        ).resolves.not.toBeUndefined();
     });
 
     it('can remove mock so it is no longer called', async () => {
@@ -199,6 +203,24 @@ describe('Mocketeer intergation', () => {
         await page.waitForFunction(
             () => document.body.innerHTML.trim() === '2'
         );
+    });
+
+    it('can inspect requests that are invoke asynchronously', async () => {
+        const mock = await mocketeer.addRestMock(
+            requestGetFoo,
+            response200Empty
+        );
+
+        await page.evaluate(() => {
+            document.body.innerHTML = 'content';
+            document.body.addEventListener('click', () => {
+                setTimeout(() => fetch('/foo'), 10);
+            });
+        });
+
+        await page.click('body');
+
+        await expect(mock.getRequest()).resolves.not.toBeFalsy();
     });
 
     // it.todo('can check if a mock has not been invoked');

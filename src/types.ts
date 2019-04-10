@@ -22,11 +22,12 @@ export interface InterceptedRequest extends UrlWithParsedQuery {
 }
 
 export interface MockOptions {
+    id: string | number;
     priority: number;
 }
 
 export interface IMock {
-    getRequest(n: number): InterceptedRequest;
+    getRequest(n: number): Promise<InterceptedRequest>;
     getResponseForRequest(
         request: InterceptedRequest,
         origin: string
