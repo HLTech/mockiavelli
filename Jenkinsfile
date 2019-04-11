@@ -51,5 +51,15 @@ pipeline {
                 }
             }
         }
+        stage('release') {
+            when { branch 'master' }
+            steps {
+                sshagent(['frontend-rw']) {
+                    withCredentials([usernamePassword(credentialsId: 'frontend-npm', passwordVariable: 'NPM_PASSWORD', usernameVariable: 'NPM_USERNAME')]) {
+                        sh "yarn release"
+                    }
+                }
+            }
+        }
     }
 }
