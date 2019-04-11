@@ -11,14 +11,16 @@ import { waitFor } from './utils';
 
 const debug = dbg('mocketeer:rest');
 
+let debugId = 1;
+
 export class RestMock implements IMock {
     private requestFilter: RequestFilter;
     private mockedResponse: MockedResponse;
     private requests: Array<InterceptedRequest> = [];
     private options: MockOptions = {
-        id: Math.ceil(Math.random() * 1000),
         priority: 0,
     };
+    private debugId = debugId++;
 
     constructor(
         filter: RequestFilter,
@@ -35,7 +37,7 @@ export class RestMock implements IMock {
     }
 
     private debug(symbol: string, message: string): void {
-        debug(`${symbol} (${this.options.id}) ${message} `);
+        debug(`${symbol} (${this.debugId}) ${message} `);
     }
 
     private debugMiss(

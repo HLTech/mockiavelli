@@ -22,7 +22,6 @@ export interface InterceptedRequest extends UrlWithParsedQuery {
 }
 
 export interface MockOptions {
-    id: string | number;
     priority: number;
 }
 

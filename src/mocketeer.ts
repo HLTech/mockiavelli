@@ -28,15 +28,13 @@ export class Mocketeer {
     }
 
     public addRestMock(
-        requestFilter: RequestFilter,
-        mockedResponse: MockedResponse,
+        request: RequestFilter,
+        response: MockedResponse,
         options?: Partial<MockOptions>
     ): RestMock {
-        const mock = new RestMock(requestFilter, mockedResponse, {
+        const mock = new RestMock(request, response, {
             ...options,
-            id: this.mocks.length + 1,
         });
-        // debug(`Add rest mock ${requestFilter.method} ${requestFilter.url} ${mockedResponse.status} ${mockedResponse.headers || '{}' } ${JSON.stringify(mockedResponse.body)}`)
         this.mocks.push(mock);
         return mock;
     }
