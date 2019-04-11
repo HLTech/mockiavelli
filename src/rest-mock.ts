@@ -46,7 +46,7 @@ export class RestMock implements IMock {
         mockedValue: string
     ) {
         this.debug(
-            `×`,
+            `·`,
             `${reason} not matched: mock=${mockedValue} req=${requestValue} `
         );
     }
@@ -112,7 +112,7 @@ export class RestMock implements IMock {
             }
         }
 
-        this.debug('•', `matched`);
+        this.debug('=', `matched mock`);
 
         return true;
     }

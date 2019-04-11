@@ -47,9 +47,21 @@ export class Mocketeer {
     }
 
     private async onRequest(request: Request): Promise<void> {
+        // Serialize request
+        const requestData = requestToPlainObject(request);
+
+        const typeMatch =
+            interceptedTypes.indexOf(request.resourceType()) !== -1;
+
+        debug(
+            `> req: type=${requestData.type} method=${requestData.method} url=${
+                requestData.url
+            } `
+        );
+
         // Do not intercept non xhr/fetch requests
-        if (interceptedTypes.indexOf(request.resourceType()) === -1) {
-            debug(`○ Unsupported type ${request.resourceType()}. Skipping`);
+        if (!typeMatch) {
+            debug(`< res: continue`);
             try {
                 return await request.continue();
             } catch (e) {
@@ -57,15 +69,6 @@ export class Mocketeer {
                 return;
             }
         }
-
-        // Serialize request
-        const requestData = requestToPlainObject(request);
-
-        debug(
-            `> request: method=${requestData.method} url=${
-                requestData.url
-            } type=${requestData.type}`
-        );
 
         // Obtain request url from originating frame url
         const originFrame = request.frame();
@@ -79,7 +82,7 @@ export class Mocketeer {
             if (response) {
                 try {
                     debug(
-                        `< replying: status=${
+                        `< res: status=${
                             response.status
                         } headers=${JSON.stringify(response.headers)} body=${
                             response.body
@@ -99,6 +102,7 @@ export class Mocketeer {
         }
 
         // Request was not matched - log error and return 404
+        debug(`< res: status=404`);
         console.error(`Mock not found for request: ${printRequest(request)}`);
         return request.respond({
             status: 404,
