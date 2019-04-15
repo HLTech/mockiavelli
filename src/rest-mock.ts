@@ -4,7 +4,7 @@ import {
     IMock,
     RequestFilter,
     MockedResponse,
-    InterceptedRequest,
+    MatchedRequest,
     MockOptions,
 } from './types';
 import { waitFor } from './utils';
@@ -14,9 +14,9 @@ const debug = dbg('mocketeer:rest');
 let debugId = 1;
 
 export class RestMock implements IMock {
-    private requestFilter: RequestFilter;
-    private mockedResponse: MockedResponse;
-    private requests: Array<InterceptedRequest> = [];
+    private filter: RequestFilter;
+    private response: MockedResponse;
+    private requests: Array<MatchedRequest> = [];
     private options: MockOptions = {
         priority: 0,
     };
@@ -27,8 +27,8 @@ export class RestMock implements IMock {
         response: MockedResponse,
         options: Partial<MockOptions> = {}
     ) {
-        this.requestFilter = filter;
-        this.mockedResponse = response;
+        this.filter = filter;
+        this.response = response;
         this.options = { ...this.options, ...options };
         this.debug(
             '+',
@@ -43,15 +43,17 @@ export class RestMock implements IMock {
     private debugMiss(
         reason: string,
         requestValue: string,
-        mockedValue: string
+        filterValue: string
     ) {
         this.debug(
             `·`,
-            `${reason} not matched: mock=${mockedValue} req=${requestValue} `
+            `${reason} not matched: mock=${filterValue} req=${requestValue} `
         );
     }
 
-    public async getRequest(n: number = 0): Promise<InterceptedRequest> {
+    public async getRequest(
+        n: number = 0
+    ): Promise<MatchedRequest | undefined> {
         try {
             await waitFor(() => Boolean(this.requests[n]));
         } catch (e) {}
@@ -59,7 +61,7 @@ export class RestMock implements IMock {
     }
 
     public getResponseForRequest(
-        request: InterceptedRequest,
+        request: MatchedRequest,
         origin: string
     ): MockedResponse | null {
         if (!this.isMatchingRequest(request, origin)) {
@@ -68,18 +70,18 @@ export class RestMock implements IMock {
 
         this.requests.push(request);
         return {
-            status: this.mockedResponse.status,
+            status: this.response.status,
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(this.mockedResponse.body),
+            body: JSON.stringify(this.response.body),
         };
     }
 
     private static allowedTypes: ResourceType[] = ['fetch', 'xhr'];
 
     private isMatchingRequest(
-        request: InterceptedRequest,
+        request: MatchedRequest,
         origin: string
     ): boolean {
         if (RestMock.allowedTypes.indexOf(request.type) === -1) {
@@ -91,23 +93,19 @@ export class RestMock implements IMock {
             return false;
         }
 
-        if (request.method !== this.requestFilter.method) {
-            this.debugMiss('method', request.method, this.requestFilter.method);
+        if (request.method !== this.filter.method) {
+            this.debugMiss('method', request.method, this.filter.method);
             return false;
         }
 
-        if (this.requestFilter.url.startsWith('/')) {
-            if (origin + this.requestFilter.url !== request.url) {
-                this.debugMiss(
-                    'url',
-                    request.url,
-                    origin + this.requestFilter.url
-                );
+        if (this.filter.url.startsWith('/')) {
+            if (origin + this.filter.url !== request.url) {
+                this.debugMiss('url', request.url, origin + this.filter.url);
                 return false;
             }
         } else {
-            if (request.url !== this.requestFilter.url) {
-                this.debugMiss('url', request.url, this.requestFilter.url);
+            if (request.url !== this.filter.url) {
+                this.debugMiss('url', request.url, this.filter.url);
                 return false;
             }
         }

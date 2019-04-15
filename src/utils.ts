@@ -1,11 +1,11 @@
 import { parse } from 'url';
 import { Request } from 'puppeteer';
-import { InterceptedRequest } from './types';
+import { MatchedRequest } from './types';
 
-export function requestToPlainObject(request: Request): InterceptedRequest {
+export function requestToPlainObject(request: Request): MatchedRequest {
     const url = request.url();
     const rawBody = request.postData();
-    const urlObject = parse(url, true);
+    const { pathname, query } = parse(url, true);
     return {
         url,
         rawBody,
@@ -13,7 +13,8 @@ export function requestToPlainObject(request: Request): InterceptedRequest {
         method: request.method(),
         headers: request.headers(),
         type: request.resourceType(),
-        ...urlObject,
+        path: pathname,
+        query,
     };
 }
 

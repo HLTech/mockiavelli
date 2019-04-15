@@ -222,6 +222,4 @@ describe('Mocketeer intergation', () => {
 
         await expect(mock.getRequest()).resolves.not.toBeFalsy();
     });
-
-    // it.todo('can check if a mock has not been invoked');
 });

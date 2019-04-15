@@ -28,11 +28,11 @@ export class Mocketeer {
     }
 
     public addRestMock(
-        request: RequestFilter,
+        filter: RequestFilter,
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): RestMock {
-        const mock = new RestMock(request, response, {
+        const mock = new RestMock(filter, response, {
             ...options,
         });
         this.mocks.push(mock);
