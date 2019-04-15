@@ -92,9 +92,9 @@ import { Mocketeer } from '@hltech/mocketeer';
 
 ## API
 
-### `Mocketeer`
+### Mocketeer
 
-#### `new Mocketeer(options)`
+#### new Mocketeer(options)
 
 Create new instance of Mocketeer.
 
@@ -103,13 +103,9 @@ Create new instance of Mocketeer.
 -   `options` _(object)_ configuration options
     -   `debug: boolean` turns debug mode with logging to console (default: `false`)
 
-#### `mocketeer.activate(page: Page): Promise<void>`
+#### .activate(page: Page): Promise<void>
 
-Activate mocketeer on a given page.
-
-This will intercept all requests that are made by the page and match them to mocks added with `.addRestMock`.
-
-If a given request does not match any mocks, it will be responded with `404 Not Found`.
+Activate mocketeer on a given page. This will intercept all requests that are made by the page and match them to mocks added with `.addRestMock`. If a given request does not match any mocks, it will be responded with `404 Not Found`.
 
 ###### Arguments
 
@@ -127,7 +123,7 @@ const page = await browser.newPage();
 await mocketeer.activate(page);
 ```
 
-#### `mocketeer.addRestMock(filter: RequestFilter, response: MockedResponse, options?): RestMock`
+#### .addRestMock(filter: RequestFilter, response: MockedResponse, options?): RestMock
 
 Respond to xhr and fetch requests that match the `filter` with provided `response`.
 
@@ -164,9 +160,11 @@ mocketeer.addRestMock(
 );
 ```
 
-### `RestMock`
+---
 
-#### `restMock.getRequest(index?: number): Promise<MatchedRequest | undefined>`
+### RestMock
+
+#### getRequest(index?: number): Promise<MatchedRequest | undefined>
 
 Retrieve n-th request matched by the mock. The method is async because it will wait 100ms for requests to be intercepted to avoid race condition issue. Resolves with undefined if mock was not matched by any request.
 
