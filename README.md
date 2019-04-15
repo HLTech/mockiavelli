@@ -103,9 +103,11 @@ Create new instance of Mocketeer.
 -   `options` _(object)_ configuration options
     -   `debug: boolean` turns debug mode with logging to console (default: `false`)
 
-#### .activate(page: Page): Promise<void>
+#### .activate(page: Page): Promise\<void\>
 
-Activate mocketeer on a given page. This will intercept all requests that are made by the page and match them to mocks added with `.addRestMock`. If a given request does not match any mocks, it will be responded with `404 Not Found`.
+Activate mocketeer on a given page.
+
+This will intercept all requests that are made by the page and match them to mocks added with `.addRestMock`. If a given request does not match any mocks, it will be responded with `404 Not Found`.
 
 ###### Arguments
 
@@ -164,7 +166,7 @@ mocketeer.addRestMock(
 
 ### RestMock
 
-#### getRequest(index?: number): Promise<MatchedRequest | undefined>
+#### getRequest(index?: number): Promise\<MatchedRequest | undefined\>
 
 Retrieve n-th request matched by the mock. The method is async because it will wait 100ms for requests to be intercepted to avoid race condition issue. Resolves with undefined if mock was not matched by any request.
 
