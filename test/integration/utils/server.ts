@@ -34,6 +34,7 @@ function respondNotFound(res, pathname) {
 
 function handler(req, res) {
     // parse URL
+    // TODO find a better alternative for url.parse
     const parsedUrl = url.parse(req.url);
 
     // extract URL path

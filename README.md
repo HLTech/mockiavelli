@@ -128,12 +128,14 @@ await mocketeer.activate(page);
 #### .addRestMock(filter: RequestFilter, response: MockedResponse, options?): RestMock
 
 Respond to xhr and fetch requests that match the `filter` with provided `response`.
+Pass query params through `query` argument in `filter` object or simply append text to `url`
 
 ###### Arguments
 
 -   `filter` _(RequestFilter)_ used to determine if request matches the mock
     -   `method: string`
     -   `url: string`
+    -   `query(optional): QueryObject` object literal which accepts strings and arrays of strings as values, transformed to queryString
 -   `response` _(MockedResponse)_ content of mocked response
     -   `status: number`
     -   `headers: object`
@@ -162,6 +164,44 @@ mocketeer.addRestMock(
 );
 ```
 
+###### Example with query passed as an argument
+
+```typescript
+mocketeer.addRestMock(
+    {
+        method: 'GET',
+        url: '/api/clients',
+        query: {
+            city: 'Bristol',
+            limit: 10,
+        },
+    },
+    {
+        status: 200,
+        body: {
+            clientId: 12345,
+        },
+    }
+);
+```
+
+###### Example with queryString appended to the url
+
+```typescript
+mocketeer.addRestMock(
+    {
+        method: 'GET',
+        url: '/api/clients?city=Bristol&limit=10',
+    },
+    {
+        status: 200,
+        body: {
+            clientId: 12345,
+        },
+    }
+);
+```
+
 ---
 
 ### RestMock
@@ -180,9 +220,10 @@ Promise resolved with `MatchedRequest` - object representing request that matche
 
 -   method _(string)_ - request's method (GET, POST, etc.)
 -   url _(string)_ - request's full URL. Example: `http://example.com/api/clients?name=foo`
+-   hostname _(string)_ - request protocol and host. Example: `http://example.com`
 -   headers _(object)_ - object with HTTP headers associated with the request. All header names are lower-case.
 -   path _(string)_ - request's url path, without query string. Example: `'/api/clients'`
--   query _(object)_ - request's query object, as returned from [`querystring.parse`](https://nodejs.org/docs/latest/api/querystring.html#querystring_querystring_parse_str_sep_eq_options). Example: `{name: 'foo'}`
+-   query _(QueryObject)_ - request's query object, as returned from [`querystring.parse`](https://nodejs.org/docs/latest/api/querystring.html#querystring_querystring_parse_str_sep_eq_options). Example: `{name: 'foo'}`
 -   body _(any)_ - JSON deserialized request's post body, if any
 -   rawBody _(string | undefined)_ - raw request's post body, if any
 -   type _(string)_ - request's resource type. Possible values are `xhr` and `fetch`

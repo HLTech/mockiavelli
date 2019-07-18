@@ -1,8 +1,18 @@
 import { ResourceType } from 'puppeteer';
 
+export type QueryObject = Record<string, string | string[]>;
+
 export interface RequestFilter {
     method: string;
     url: string;
+    query?: QueryObject;
+}
+
+export interface ParsedFilterRequest {
+    method: string;
+    hostname: string | undefined;
+    path: string | undefined;
+    query: QueryObject;
 }
 
 export interface MockedResponse {
@@ -14,12 +24,13 @@ export interface MockedResponse {
 export interface MatchedRequest {
     url: string;
     method: string;
+    hostname: string;
     body?: any;
     rawBody?: string | undefined;
     headers: Record<string, string>;
     type: ResourceType;
     path: string | undefined;
-    query: Record<string, string | string[]>;
+    query: QueryObject;
 }
 
 export interface MockOptions {

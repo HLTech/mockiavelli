@@ -49,7 +49,6 @@ export class Mocketeer {
     private async onRequest(request: Request): Promise<void> {
         // Serialize request
         const requestData = requestToPlainObject(request);
-
         const typeMatch =
             interceptedTypes.indexOf(request.resourceType()) !== -1;
 
@@ -73,6 +72,7 @@ export class Mocketeer {
         // Obtain request url from originating frame url
         const originFrame = request.frame();
         const originFrameUrl = originFrame ? await originFrame.url() : '';
+        // TODO find a better alternative for url.parse
         const { protocol, host } = parse(originFrameUrl);
         const origin = `${protocol}//${host}`;
 

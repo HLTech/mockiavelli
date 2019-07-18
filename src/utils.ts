@@ -5,7 +5,8 @@ import { MatchedRequest } from './types';
 export function requestToPlainObject(request: Request): MatchedRequest {
     const url = request.url();
     const rawBody = request.postData();
-    const { pathname, query } = parse(url, true);
+    // TODO find a better alternative for url.parse
+    const { pathname, query, protocol, host } = parse(url, true);
     return {
         url,
         rawBody,
@@ -14,6 +15,7 @@ export function requestToPlainObject(request: Request): MatchedRequest {
         headers: request.headers(),
         type: request.resourceType(),
         path: pathname,
+        hostname: `${protocol}//${host}`,
         query,
     };
 }

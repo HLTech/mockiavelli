@@ -5,11 +5,12 @@ import {
     requestGetFoo,
     requestPostFoo,
     response200Empty,
+    requestGetFooWithQuery,
 } from './fixture/mock-fixtures';
 
 const PORT = 9000;
 
-describe('Mocketeer intergation', () => {
+describe('Mocketeer integration', () => {
     let browser: Browser;
     let page: Page;
     let mocketeer: Mocketeer;
@@ -45,6 +46,21 @@ describe('Mocketeer intergation', () => {
 
         await page.evaluate(() => {
             fetch('/foo')
+                .then(res => res.json())
+                .then(data => (document.body.innerHTML = data.payload));
+        });
+
+        await page.waitFor(100);
+        expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
+            response200Ok.body.payload
+        );
+    });
+
+    it('mocks fetch GET request with query', async () => {
+        await mocketeer.addRestMock(requestGetFooWithQuery, response200Ok);
+
+        await page.evaluate(() => {
+            fetch('/foo?param=fooParam')
                 .then(res => res.json())
                 .then(data => (document.body.innerHTML = data.payload));
         });

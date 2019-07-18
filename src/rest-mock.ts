@@ -2,32 +2,35 @@ import { ResourceType } from 'puppeteer';
 import dbg from 'debug';
 import {
     IMock,
-    RequestFilter,
-    MockedResponse,
     MatchedRequest,
+    MockedResponse,
     MockOptions,
+    ParsedFilterRequest,
+    QueryObject,
+    RequestFilter,
 } from './types';
 import { waitFor } from './utils';
+import isEqual from 'lodash.isequal';
+import { parse } from 'url';
 
 const debug = dbg('mocketeer:rest');
 
 let debugId = 1;
 
 export class RestMock implements IMock {
-    private filter: RequestFilter;
+    private filter: ParsedFilterRequest;
     private response: MockedResponse;
     private requests: Array<MatchedRequest> = [];
     private options: MockOptions = {
         priority: 0,
     };
     private debugId = debugId++;
-
     constructor(
         filter: RequestFilter,
         response: MockedResponse,
         options: Partial<MockOptions> = {}
     ) {
-        this.filter = filter;
+        this.filter = this.createParsedFilterRequest(filter);
         this.response = response;
         this.options = { ...this.options, ...options };
         this.debug(
@@ -62,9 +65,9 @@ export class RestMock implements IMock {
 
     public getResponseForRequest(
         request: MatchedRequest,
-        origin: string
+        pageOrigin: string
     ): MockedResponse | null {
-        if (!this.isMatchingRequest(request, origin)) {
+        if (!this.isMatchingRequest(request, pageOrigin)) {
             return null;
         }
 
@@ -82,7 +85,7 @@ export class RestMock implements IMock {
 
     private isMatchingRequest(
         request: MatchedRequest,
-        origin: string
+        pageOrigin: string
     ): boolean {
         if (RestMock.allowedTypes.indexOf(request.type) === -1) {
             this.debugMiss(
@@ -98,21 +101,60 @@ export class RestMock implements IMock {
             return false;
         }
 
-        if (this.filter.url.startsWith('/')) {
-            if (origin + this.filter.url !== request.url) {
-                this.debugMiss('url', request.url, origin + this.filter.url);
-                return false;
-            }
-        } else {
-            if (request.url !== this.filter.url) {
-                this.debugMiss('url', request.url, this.filter.url);
-                return false;
-            }
+        const filterRequestUrlToCompare = this.filter.hostname
+            ? this.filter.hostname + this.filter.path
+            : pageOrigin + this.filter.path;
+
+        const requestUrlToCompare = request.hostname + request.path;
+
+        if (filterRequestUrlToCompare !== requestUrlToCompare) {
+            this.debugMiss(
+                'url',
+                requestUrlToCompare || `Request url missing`,
+                filterRequestUrlToCompare || `Filter url missing`
+            );
+            return false;
+        }
+
+        if (!this.requestParamsMatch(request.query, this.filter.query)) {
+            this.debugMiss(
+                'query',
+                JSON.stringify(request.query),
+                JSON.stringify(this.filter.query)
+            );
+            return false;
         }
 
         this.debug('=', `matched mock`);
 
         return true;
+    }
+
+    private createParsedFilterRequest(
+        filter: RequestFilter
+    ): ParsedFilterRequest {
+        // TODO find a better alternative for url.parse
+        const { protocol, host, pathname, query } = parse(filter.url, true);
+        const hasHostname = protocol && host;
+
+        return {
+            method: filter.method,
+            hostname: hasHostname ? `${protocol}//${host}` : undefined,
+            query: filter.query ? filter.query : query,
+            path: pathname,
+        };
+    }
+
+    private requestParamsMatch(
+        requestQuery: QueryObject,
+        filterQuery: QueryObject
+    ): boolean {
+        return Object.keys(filterQuery).every((key: string) => {
+            return (
+                key in requestQuery &&
+                isEqual(filterQuery[key], requestQuery[key])
+            );
+        });
     }
 
     public static sortByPriority(a: RestMock, b: RestMock) {

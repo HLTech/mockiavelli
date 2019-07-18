@@ -12,7 +12,17 @@ describe('utils', () => {
             req.method.mockReturnValue('GET');
             req.headers.mockReturnValue({ header: 'header' });
             req.resourceType.mockReturnValue('xhr');
-            expect(requestToPlainObject(req)).toMatchSnapshot();
+            expect(requestToPlainObject(req)).toMatchObject({
+                headers: {
+                    header: 'header',
+                },
+                hostname: 'http://example.com:8000',
+                method: 'GET',
+                path: '/some/path',
+                query: {
+                    foo: 'bar',
+                },
+            });
         });
 
         test('returns only rawBody without body if postData() returns non-JSON string', () => {

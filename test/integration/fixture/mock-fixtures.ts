@@ -5,6 +5,14 @@ export const requestGetFoo: RequestFilter = {
     url: '/foo',
 };
 
+export const requestGetFooWithQuery: RequestFilter = {
+    method: 'GET',
+    url: '/foo',
+    query: {
+        param: 'fooParam',
+    },
+};
+
 export const requestPostFoo: RequestFilter = {
     method: 'POST',
     url: '/foo',
