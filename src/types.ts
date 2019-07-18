@@ -2,10 +2,13 @@ import { ResourceType } from 'puppeteer';
 
 export type QueryObject = Record<string, string | string[]>;
 
-export interface RequestFilter {
-    method: string;
+export interface RequestMethodFilter {
     url: string;
     query?: QueryObject;
+}
+
+export interface RequestFilter extends RequestMethodFilter {
+    method: string;
 }
 
 export interface ParsedFilterRequest {
@@ -43,4 +46,11 @@ export interface IMock {
         request: MatchedRequest,
         origin: string
     ): MockedResponse | null;
+}
+
+export enum REST_METHOD {
+    GET = 'GET',
+    POST = 'POST',
+    PUT = 'PUT',
+    DELETE = 'DELETE',
 }

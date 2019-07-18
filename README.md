@@ -22,7 +22,7 @@ test('can create client', async () => {
     const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
-    const mock = await mocketeer.addRestMock(
+    const mock = await mocketeer.mockREST(
         {
             method: 'POST',
             path: '/api/user',
@@ -64,7 +64,7 @@ import { Mocketeer } from '@hltech/mocketeer';
     const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
-    const mock = await mocketeer.addRestMock(
+    const mock = await mocketeer.mockREST(
         {
             method: 'POST',
             path: '/api/user',
@@ -133,7 +133,7 @@ const page = await browser.newPage();
 await mocketeer.activate(page);
 ```
 
-#### .addRestMock(filter: RequestFilter, response: MockedResponse, options?): RestMock
+#### .mockREST(filter: RequestFilter, response: MockedResponse, options?): RestMock
 
 Respond to xhr and fetch requests that match the `filter` with provided `response`.
 Pass query params through `query` argument in `filter` object or simply append text to `url`
@@ -158,7 +158,7 @@ Newly created instance of `RestMock`.
 ###### Example
 
 ```typescript
-mocketeer.addRestMock(
+mocketeer.mockREST(
     {
         method: 'POST',
         url: '/api/clients',
@@ -175,7 +175,7 @@ mocketeer.addRestMock(
 ###### Example with query passed as an argument
 
 ```typescript
-mocketeer.addRestMock(
+mocketeer.mockREST(
     {
         method: 'GET',
         url: '/api/clients',
@@ -196,7 +196,7 @@ mocketeer.addRestMock(
 ###### Example with queryString appended to the url
 
 ```typescript
-mocketeer.addRestMock(
+mocketeer.mockREST(
     {
         method: 'GET',
         url: '/api/clients?city=Bristol&limit=10',
@@ -208,6 +208,98 @@ mocketeer.addRestMock(
         },
     }
 );
+```
+
+#### .mockGET(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
+
+#### .mockPOST(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
+
+#### .mockPUT(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
+
+#### .mockDELETE(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
+
+Respond to xhr and fetch requests with adequate rest method that match the `filter` with provided `response`.
+Pass `filter` as an object or as an `url` string.
+Pass query params through `query` argument in `filter` object or simply append text to `url`
+
+###### Arguments
+
+-   `filter` _(RequestMethodFilter)_ used to determine if request matches the mock
+    -   `url: string`
+    -   `query(optional): QueryObject` object literal which accepts strings and arrays of strings as values, transformed to queryString
+-   `filter` _(string)_ `url` used to determine if request matches the mock
+-   `response` _(MockedResponse)_ content of mocked response
+    -   `status: number`
+    -   `headers: object`
+    -   `body: any`
+-   `options` _(object)_ optional config object
+    -   `prority` _(number)_ when intercepted request matches multiple mock, mocketeer will use the one with highest priority
+
+###### Returns
+
+Newly created instance of `RestMock`.
+
+###### Example of GET request
+
+```typescript
+mocketeer.mockGET(
+    {
+        url: '/api/clients',
+    },
+    {
+        status: 201,
+        body: {
+            clientId: 12345,
+        },
+    }
+);
+```
+
+###### Example of GET request with query passed as an argument
+
+```typescript
+mocketeer.mockGET(
+    {
+        url: '/api/clients',
+        query: {
+            city: 'Bristol',
+            limit: 10,
+        },
+    },
+    {
+        status: 200,
+        body: {
+            clientId: 12345,
+        },
+    }
+);
+```
+
+###### Example of GET request with queryString appended to the url
+
+```typescript
+mocketeer.mockGET(
+    {
+        url: '/api/clients?city=Bristol&limit=10',
+    },
+    {
+        status: 200,
+        body: {
+            clientId: 12345,
+        },
+    }
+);
+```
+
+###### Example of GET request with filter as a string with query
+
+```typescript
+mocketeer.mockGET('/api/clients?city=Bristol&limit=10', {
+    status: 200,
+    body: {
+        clientId: 12345,
+    },
+});
 ```
 
 ---
@@ -239,7 +331,7 @@ Promise resolved with `MatchedRequest` - object representing request that matche
 ###### Example
 
 ```typescript
-const createClientMock = mocketeer.addRestMock(
+const createClientMock = mocketeer.mockREST(
     {
         method: 'POST',
         url: '/api/clients',

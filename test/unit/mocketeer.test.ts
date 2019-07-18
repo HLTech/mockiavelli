@@ -1,6 +1,12 @@
-import { Mocketeer } from '../../src';
+import {
+    Mocketeer,
+    RequestMethodFilter,
+    REST_METHOD,
+    RestMock,
+} from '../../src';
 import { createMockPage } from './fixtures/page';
 import { createMockRequest } from './fixtures/request';
+jest.mock('../../src/rest-mock');
 
 describe('Mocketeer', () => {
     describe('.activate', () => {
@@ -50,6 +56,155 @@ describe('Mocketeer', () => {
             request.resourceType.mockReturnValue('image');
             callback(request);
             expect(request.continue).toHaveBeenCalled();
+        });
+    });
+
+    describe('mock http methods', () => {
+        let mocketeer: Mocketeer;
+        const url = 'url';
+        const filter: RequestMethodFilter = { url };
+        const filterWithQuery: RequestMethodFilter = {
+            url,
+            query: {
+                param: 'fooParam',
+            },
+        };
+        const mockResponse = { status: 404, body: {} };
+
+        beforeEach(async () => {
+            mocketeer = new Mocketeer();
+        });
+
+        test('should create RestMock using GET method and filter as object', () => {
+            mocketeer.mockGET(filter, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({ method: REST_METHOD.GET, ...filter }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using GET method with filter and query as objects', () => {
+            mocketeer.mockGET(filterWithQuery, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.GET,
+                    ...filterWithQuery,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using GET method and filter as url string', () => {
+            mocketeer.mockGET(url, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({ method: REST_METHOD.GET, ...filter }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using POST method and filter as object', () => {
+            mocketeer.mockPOST(filter, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.POST,
+                    ...filter,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using POST method with filter and query as objects', () => {
+            mocketeer.mockPOST(filterWithQuery, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.POST,
+                    ...filterWithQuery,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using POST method and filter as url string', () => {
+            mocketeer.mockPOST(url, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.POST,
+                    ...filter,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using PUT method and filter as object', () => {
+            mocketeer.mockPUT(filter, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({ method: REST_METHOD.PUT, ...filter }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using PUT method with filter and query as objects', () => {
+            mocketeer.mockPUT(filterWithQuery, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.PUT,
+                    ...filterWithQuery,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using PUT method and filter as url string', () => {
+            mocketeer.mockPUT(url, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({ method: REST_METHOD.PUT, ...filter }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using DELETE method and filter as object', () => {
+            mocketeer.mockDELETE(filter, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.DELETE,
+                    ...filter,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using DELETE method with filter and query as objects', () => {
+            mocketeer.mockDELETE(filterWithQuery, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.DELETE,
+                    ...filterWithQuery,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using DELETE method and filter as url string', () => {
+            mocketeer.mockDELETE(url, mockResponse);
+            expect(RestMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: REST_METHOD.DELETE,
+                    ...filter,
+                }),
+                mockResponse,
+                expect.anything()
+            );
         });
     });
 });

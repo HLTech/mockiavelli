@@ -1,4 +1,15 @@
-import { RequestFilter } from '../../../src/types';
+import { RequestFilter, RequestMethodFilter } from '../../../src/types';
+
+export const requestFoo: RequestMethodFilter = {
+    url: '/foo',
+};
+
+export const requestFooWithQuery: RequestMethodFilter = {
+    url: '/foo',
+    query: {
+        param: 'fooParam',
+    },
+};
 
 export const requestGetFoo: RequestFilter = {
     method: 'GET',
@@ -15,6 +26,16 @@ export const requestGetFooWithQuery: RequestFilter = {
 
 export const requestPostFoo: RequestFilter = {
     method: 'POST',
+    url: '/foo',
+};
+
+export const requestPutFoo: RequestFilter = {
+    method: 'PUT',
+    url: '/foo',
+};
+
+export const requestDeleteFoo: RequestFilter = {
+    method: 'DELETE',
     url: '/foo',
 };
 

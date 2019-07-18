@@ -2,7 +2,13 @@ import { parse } from 'url';
 import { Page, Request, ResourceType } from 'puppeteer';
 import dbg from 'debug';
 import { RestMock } from './rest-mock';
-import { MockedResponse, MockOptions, RequestFilter } from './types';
+import {
+    MockedResponse,
+    MockOptions,
+    RequestFilter,
+    RequestMethodFilter,
+    REST_METHOD,
+} from './types';
 import { printRequest, requestToPlainObject } from './utils';
 
 const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
@@ -41,6 +47,10 @@ export class Mocketeer {
         page.on('request', request => this.onRequest(request));
     }
 
+    /*
+     * Use mockREST instead
+     * @deprecated
+     */
     public addRestMock(
         filter: RequestFilter,
         response: MockedResponse,
@@ -51,6 +61,78 @@ export class Mocketeer {
         });
         this.mocks.push(mock);
         return mock;
+    }
+
+    public mockREST(
+        filter: RequestFilter,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): RestMock {
+        const mock = new RestMock(filter, response, {
+            ...options,
+        });
+        this.mocks.push(mock);
+        return mock;
+    }
+
+    public mockGET(
+        filter: RequestMethodFilter | string,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): RestMock {
+        const filterObject =
+            typeof filter === 'string' ? { url: filter } : filter;
+
+        return this.mockREST(
+            { ...filterObject, method: REST_METHOD.GET },
+            response,
+            options
+        );
+    }
+
+    public mockPOST(
+        filter: RequestMethodFilter | string,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): RestMock {
+        const filterObject =
+            typeof filter === 'string' ? { url: filter } : filter;
+
+        return this.mockREST(
+            { ...filterObject, method: REST_METHOD.POST },
+            response,
+            options
+        );
+    }
+
+    public mockPUT(
+        filter: RequestMethodFilter | string,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): RestMock {
+        const filterObject =
+            typeof filter === 'string' ? { url: filter } : filter;
+
+        return this.mockREST(
+            { ...filterObject, method: REST_METHOD.PUT },
+            response,
+            options
+        );
+    }
+
+    public mockDELETE(
+        filter: RequestMethodFilter | string,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): RestMock {
+        const filterObject =
+            typeof filter === 'string' ? { url: filter } : filter;
+
+        return this.mockREST(
+            { ...filterObject, method: REST_METHOD.DELETE },
+            response,
+            options
+        );
     }
 
     public removeMock(mock: RestMock): RestMock | void {
