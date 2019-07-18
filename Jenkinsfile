@@ -4,6 +4,7 @@ pipeline {
     agent {
         docker {
             image 'jenkins-pipeline-agent-ui:latest'
+            alwaysPull true
             reuseNode true
         }
     }
