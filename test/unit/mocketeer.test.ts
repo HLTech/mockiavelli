@@ -16,6 +16,25 @@ describe('Mocketeer', () => {
         });
     });
 
+    describe('setup()', () => {
+        it('returns a promise resolving to instance of Mocketeer', async () => {
+            const page = createMockPage();
+            await expect(Mocketeer.setup(page)).resolves.toBeInstanceOf(
+                Mocketeer
+            );
+        });
+
+        it('.calls page.setRequestInterception and page.on ', async () => {
+            const page = createMockPage();
+            await Mocketeer.setup(page);
+            expect(page.setRequestInterception).toHaveBeenCalledWith(true);
+            expect(page.on).toHaveBeenCalledWith(
+                'request',
+                expect.any(Function)
+            );
+        });
+    });
+
     describe('on "request"', () => {
         let page: ReturnType<typeof createMockPage>;
 

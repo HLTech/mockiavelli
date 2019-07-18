@@ -33,8 +33,7 @@ describe('Mocketeer integration', () => {
         await page.goto(`http://localhost:${PORT}`);
 
         // Instantiate Mocketeer
-        mocketeer = new Mocketeer();
-        await mocketeer.activate(page);
+        mocketeer = await Mocketeer.setup(page);
     });
 
     afterEach(async () => {

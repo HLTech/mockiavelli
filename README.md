@@ -19,8 +19,7 @@ test('can create client', async () => {
     await page.goto('https://example.com');
 
     // Create Mocketeer instance
-    const mocketeer = new Mocketeer();
-    await mocketeer.activate(page);
+    const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
     const mock = await mocketeer.addRestMock(
@@ -62,8 +61,7 @@ import { Mocketeer } from '@hltech/mocketeer';
     await page.goto('https://example.com');
 
     // Create Mocketeer instance
-    const mocketeer = new Mocketeer();
-    await mocketeer.activate(page);
+    const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
     const mock = await mocketeer.addRestMock(
@@ -94,20 +92,30 @@ import { Mocketeer } from '@hltech/mocketeer';
 
 ### Mocketeer
 
-#### new Mocketeer(options)
+#### Mocketeer.setup(page, options): Promise< Mocketeer >
 
-Create new instance of Mocketeer.
+Factory method used to set-up request mocking on provided Puppeteer Page. It creates and returns an instance of Mocketeer
+
+Mocketeer will intercept all requests made by the page and match them to mocks set up with `mocketeer.addRestMock`.
+If request does not match any mocks, it will be responded with `404 Not Found`.
 
 ###### Arguments
 
+-   `page` _(Page)_ instance of Puppeteer [Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page)
 -   `options` _(object)_ configuration options
     -   `debug: boolean` turns debug mode with logging to console (default: `false`)
 
-#### .activate(page: Page): Promise\<void\>
+###### Example
+
+```typescript
+const browser = await puppeteer.launch();
+const page = await browser.newPage();
+const mocketeer = await Mocketeer.setup(page);
+```
+
+#### ~~.activate(page: Page): Promise\<void\>~~ (depracated)
 
 Activate mocketeer on a given page.
-
-This will intercept all requests that are made by the page and match them to mocks added with `.addRestMock`. If a given request does not match any mocks, it will be responded with `404 Not Found`.
 
 ###### Arguments
 

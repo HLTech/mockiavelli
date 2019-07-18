@@ -22,6 +22,20 @@ export class Mocketeer {
         }
         debug('Initialized');
     }
+
+    public static async setup(
+        page: Page,
+        options: Partial<MocketeerOptions> = {}
+    ): Promise<Mocketeer> {
+        const mocketeer = new Mocketeer(options);
+        await mocketeer.activate(page);
+        return mocketeer;
+    }
+
+    /**
+     * use Mocketeer.setup instead
+     * @deprecated
+     */
     public async activate(page: Page): Promise<void> {
         await page.setRequestInterception(true);
         page.on('request', request => this.onRequest(request));
