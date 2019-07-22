@@ -359,6 +359,30 @@ describe('Mocketeer integration', () => {
         });
     });
 
+    it('.getRequest() rejects when request matching mock was not found', async () => {
+        const mock = await mocketeer.addRestMock(
+            { method: 'GET', url: '/some_endpoint' },
+            { status: 200, body: 'OK' }
+        );
+
+        await expect(mock.getRequest(0)).rejects.toMatchObject({
+            message: expect.stringMatching(
+                /No request matching mock \[\(\d+\) GET \/some_endpoint\] found/
+            ),
+        });
+
+        await page.evaluate(() => {
+            return fetch('/some_endpoint');
+        });
+
+        await expect(mock.getRequest(0)).resolves.toEqual(expect.anything());
+        await expect(mock.getRequest(1)).rejects.toMatchObject({
+            message: expect.stringMatching(
+                /2nd request matching mock \[\(\d+\) GET \/some_endpoint\] was not found/
+            ),
+        });
+    });
+
     it('notifies when mock was called', async () => {
         const mock = await mocketeer.mockREST(requestGetFoo, response200Empty);
 
@@ -388,10 +412,10 @@ describe('Mocketeer integration', () => {
 
         await page.waitFor(100);
 
-        await expect(mock.getRequest()).resolves.toBeUndefined();
-        await expect(
-            mockWithPriority.getRequest()
-        ).resolves.not.toBeUndefined();
+        await expect(mock.getRequest()).rejects.toEqual(expect.anything());
+        await expect(mockWithPriority.getRequest()).resolves.toEqual(
+            expect.anything()
+        );
     });
 
     it('can remove mock so it is no longer called', async () => {
@@ -440,6 +464,6 @@ describe('Mocketeer integration', () => {
 
         await page.click('body');
 
-        await expect(mock.getRequest()).resolves.not.toBeFalsy();
+        await expect(mock.getRequest()).resolves.toEqual(expect.anything());
     });
 });

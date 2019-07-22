@@ -9,11 +9,14 @@ import {
     QueryObject,
     RequestFilter,
 } from './types';
-import { waitFor } from './utils';
+import { waitFor, TimeoutError, nth } from './utils';
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
+import { stringify } from 'querystring';
 
 const debug = dbg('mocketeer:rest');
+
+const GET_REQUEST_TIMEOUT = 100;
 
 let debugId = 1;
 
@@ -54,13 +57,29 @@ export class RestMock implements IMock {
         );
     }
 
-    public async getRequest(
-        n: number = 0
-    ): Promise<MatchedRequest | undefined> {
+    public async getRequest(index: number = 0): Promise<MatchedRequest> {
         try {
-            await waitFor(() => Boolean(this.requests[n]));
-        } catch (e) {}
-        return this.requests[n];
+            await waitFor(
+                () => Boolean(this.requests[index]),
+                GET_REQUEST_TIMEOUT
+            );
+        } catch (e) {
+            if (e instanceof TimeoutError) {
+                if (this.requests.length === 0 && index === 0) {
+                    throw new Error(
+                        `No request matching mock [${this.prettyPrint()}] found`
+                    );
+                } else {
+                    throw new Error(
+                        `${nth(
+                            index + 1
+                        )} request matching mock [${this.prettyPrint()}] was not found`
+                    );
+                }
+            }
+            throw e;
+        }
+        return this.requests[index];
     }
 
     public getResponseForRequest(
@@ -159,5 +178,11 @@ export class RestMock implements IMock {
 
     public static sortByPriority(a: RestMock, b: RestMock) {
         return b.options.priority - a.options.priority;
+    }
+
+    private prettyPrint(): string {
+        const qs = stringify(this.filter.query);
+        return `(${this.debugId}) ${this.filter.method} ${this.filter.path +
+            (qs ? '?' + qs : '')}`;
     }
 }
