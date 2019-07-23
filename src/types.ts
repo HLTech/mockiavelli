@@ -38,6 +38,7 @@ export interface MatchedRequest {
 
 export interface MockOptions {
     priority: number;
+    once: boolean;
 }
 
 export interface IMock {

@@ -26,6 +26,7 @@ export class RestMock implements IMock {
     private requests: Array<MatchedRequest> = [];
     private options: MockOptions = {
         priority: 0,
+        once: false,
     };
     private debugId = debugId++;
     constructor(
@@ -86,6 +87,11 @@ export class RestMock implements IMock {
         request: MatchedRequest,
         pageOrigin: string
     ): MockedResponse | null {
+        if (this.options.once && this.requests.length > 0) {
+            this.debug('once', 'Request already matched');
+            return null;
+        }
+
         if (!this.isMatchingRequest(request, pageOrigin)) {
             return null;
         }

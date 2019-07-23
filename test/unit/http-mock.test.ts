@@ -1,18 +1,27 @@
-import { RequestFilter, RestMock } from '../../src';
+import {
+    MatchedRequest,
+    MockOptions,
+    RequestFilter,
+    RestMock,
+} from '../../src';
 
 const mockedResponse = {
     status: 200,
     body: {},
 };
 
-const createRestMock = (change: Partial<RequestFilter> = {}) => {
+const createRestMock = (
+    change: Partial<RequestFilter> = {},
+    options?: Partial<MockOptions>
+) => {
     return new RestMock(
         {
             url: '/foo',
             method: 'GET',
             ...change,
         },
-        mockedResponse
+        mockedResponse,
+        options
     );
 };
 
@@ -245,6 +254,43 @@ test('.getResponseForRequest does not match GET request when pageOrigin is diffe
             },
             'http://localhost'
         )
+    ).toBeNull();
+});
+
+test('.getResponseForRequest matches GET request first time when once option is set to true', () => {
+    const mock = createRestMock(undefined, { once: true });
+
+    expect(
+        mock.getResponseForRequest(
+            {
+                path: '/foo',
+                method: 'GET',
+                url: 'http://example/foo',
+                type: 'xhr',
+                headers: {},
+                query: {},
+                hostname: 'http://example',
+            },
+            'http://example'
+        )
+    ).not.toBeNull();
+});
+
+test('.getResponseForRequest does not match second GET request when once option is set to true', () => {
+    const mock = createRestMock(undefined, { once: true });
+    const exampleRequest: MatchedRequest = {
+        path: '/foo',
+        method: 'GET',
+        url: 'http://example/foo',
+        type: 'xhr',
+        headers: {},
+        query: {},
+        hostname: 'http://example',
+    };
+    mock.getResponseForRequest(exampleRequest, 'http://example');
+
+    expect(
+        mock.getResponseForRequest(exampleRequest, 'http://example')
     ).toBeNull();
 });
 

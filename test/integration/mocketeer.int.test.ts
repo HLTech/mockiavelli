@@ -466,4 +466,48 @@ describe('Mocketeer integration', () => {
 
         await expect(mock.getRequest()).resolves.toEqual(expect.anything());
     });
+
+    it('matches only once request with once set to true', async () => {
+        spyOn(console, 'error');
+        await mocketeer.mockREST(requestGetFoo, response200Ok, { once: true });
+
+        const response = await page.evaluate(() =>
+            fetch('/foo').then(res => res.json())
+        );
+
+        await expect(response).toEqual(response200Ok.body);
+
+        const statusCode = await page.evaluate(() =>
+            fetch('/foo').then(res => res.status)
+        );
+        await expect(statusCode).toBe(404);
+        expect(console.error).toHaveBeenCalled();
+    });
+
+    it('matches only once every request in order with once set to true', async () => {
+        await mocketeer.mockREST(
+            requestGetFoo,
+            { status: 200, body: {} },
+            { once: true }
+        );
+        await mocketeer.mockREST(
+            requestGetFoo,
+            { status: 201, body: {} },
+            {
+                once: true,
+            }
+        );
+
+        const firstResponseStatus = await page.evaluate(() =>
+            fetch('/foo').then(res => res.status)
+        );
+
+        await expect(firstResponseStatus).toBe(200);
+
+        const secondResponseStatus = await page.evaluate(() =>
+            fetch('/foo').then(res => res.status)
+        );
+
+        await expect(secondResponseStatus).toBe(201);
+    });
 });

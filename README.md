@@ -150,6 +150,7 @@ Pass query params through `query` argument in `filter` object or simply append t
     -   `body: any`
 -   `options` _(object)_ optional config object
     -   `prority` _(number)_ when intercepted request matches multiple mock, mocketeer will use the one with highest priority
+    -   `once` _(boolean)_ _(default: false)_ when set to true intercepted request will be matched only once
 
 ###### Returns
 
@@ -234,6 +235,7 @@ Pass query params through `query` argument in `filter` object or simply append t
     -   `body: any`
 -   `options` _(object)_ optional config object
     -   `prority` _(number)_ when intercepted request matches multiple mock, mocketeer will use the one with highest priority
+    -   `once` _(boolean)_ _(default: false)_ when set to true intercepted request will be matched only once
 
 ###### Returns
 
