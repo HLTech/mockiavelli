@@ -9,7 +9,7 @@ import {
     RequestMethodFilter,
     REST_METHOD,
 } from './types';
-import { printRequest, requestToPlainObject } from './utils';
+import { addMockByPriority, printRequest, requestToPlainObject } from './utils';
 
 const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
 
@@ -59,7 +59,8 @@ export class Mocketeer {
         const mock = new RestMock(filter, response, {
             ...options,
         });
-        this.mocks.push(mock);
+
+        addMockByPriority(this.mocks, mock);
         return mock;
     }
 
@@ -71,7 +72,8 @@ export class Mocketeer {
         const mock = new RestMock(filter, response, {
             ...options,
         });
-        this.mocks.push(mock);
+
+        addMockByPriority(this.mocks, mock);
         return mock;
     }
 
@@ -172,7 +174,7 @@ export class Mocketeer {
         const { protocol, host } = parse(originFrameUrl);
         const origin = `${protocol}//${host}`;
 
-        for (const mock of this.mocks.sort(RestMock.sortByPriority)) {
+        for (const mock of this.mocks) {
             const response = mock.getResponseForRequest(requestData, origin);
 
             if (response) {

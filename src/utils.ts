@@ -67,3 +67,15 @@ export function nth(d: number): string {
             return `${d}th`;
     }
 }
+
+export function addMockByPriority<T extends { options: { priority: number } }>(
+    mockArr: T[],
+    mock: T
+) {
+    const index = mockArr.findIndex(
+        (item: T) => item.options.priority <= mock.options.priority
+    );
+    const calculatedIndex = index === -1 ? mockArr.length : index;
+    mockArr.splice(calculatedIndex, 0, mock);
+    return mockArr;
+}

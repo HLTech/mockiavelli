@@ -24,7 +24,7 @@ export class RestMock implements IMock {
     private filter: ParsedFilterRequest;
     private response: MockedResponse;
     private requests: Array<MatchedRequest> = [];
-    private options: MockOptions = {
+    public options: MockOptions = {
         priority: 0,
         once: false,
     };
@@ -180,10 +180,6 @@ export class RestMock implements IMock {
                 isEqual(filterQuery[key], requestQuery[key])
             );
         });
-    }
-
-    public static sortByPriority(a: RestMock, b: RestMock) {
-        return b.options.priority - a.options.priority;
     }
 
     private prettyPrint(): string {

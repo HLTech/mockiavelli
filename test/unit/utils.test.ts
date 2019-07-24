@@ -1,5 +1,9 @@
-import { requestToPlainObject, waitFor } from '../../src/utils';
-import { createMockRequest } from './fixtures/request';
+import {
+    requestToPlainObject,
+    waitFor,
+    addMockByPriority,
+} from '../../src/utils';
+import { createMockRequest, createRestMock } from './fixtures/request';
 
 describe('utils', () => {
     describe('requestToPlainObject', () => {
@@ -78,5 +82,53 @@ describe('utils', () => {
         } catch (e) {
             expect(e).not.toBeFalsy();
         }
+    });
+
+    describe('addMockByPriority', () => {
+        test('adds mocks with higher priority first', () => {
+            const mocks = [createRestMock()];
+            const higherPriorityMock = createRestMock({}, { priority: 10 });
+
+            expect(addMockByPriority(mocks, higherPriorityMock)[0]).toBe(
+                higherPriorityMock
+            );
+        });
+
+        test('adds mock in correct order basing on priority', () => {
+            const mocks = [createRestMock()];
+            const higherPriorityMock = createRestMock({}, { priority: 10 });
+            const middlePriorityMock = createRestMock({}, { priority: 5 });
+
+            expect(addMockByPriority(mocks, higherPriorityMock)[0]).toBe(
+                higherPriorityMock
+            );
+            expect(addMockByPriority(mocks, middlePriorityMock)[1]).toBe(
+                middlePriorityMock
+            );
+        });
+
+        test('adds mock to end when mock has lowest priority', () => {
+            const mocks = [
+                createRestMock({}, { priority: 10 }),
+                createRestMock({}, { priority: 5 }),
+            ];
+            const lowestPriorityMock = createRestMock({}, { priority: 3 });
+
+            expect(addMockByPriority(mocks, lowestPriorityMock)[2]).toBe(
+                lowestPriorityMock
+            );
+        });
+
+        test('adds mock before mock with same priority', () => {
+            const mocks = [
+                createRestMock({}, { priority: 10 }),
+                createRestMock({}, { priority: 5 }),
+            ];
+            const samePriorityMock = createRestMock({}, { priority: 5 });
+
+            expect(addMockByPriority(mocks, samePriorityMock)[1]).toBe(
+                samePriorityMock
+            );
+        });
     });
 });

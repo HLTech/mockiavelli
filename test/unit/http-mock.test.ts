@@ -1,29 +1,5 @@
-import {
-    MatchedRequest,
-    MockOptions,
-    RequestFilter,
-    RestMock,
-} from '../../src';
-
-const mockedResponse = {
-    status: 200,
-    body: {},
-};
-
-const createRestMock = (
-    change: Partial<RequestFilter> = {},
-    options?: Partial<MockOptions>
-) => {
-    return new RestMock(
-        {
-            url: '/foo',
-            method: 'GET',
-            ...change,
-        },
-        mockedResponse,
-        options
-    );
-};
+import { MatchedRequest } from '../../src';
+import { createRestMock } from './fixtures/request';
 
 test('.getResponseForRequest matches GET request', () => {
     const mock = createRestMock();
@@ -292,42 +268,4 @@ test('.getResponseForRequest does not match second GET request when once option 
     expect(
         mock.getResponseForRequest(exampleRequest, 'http://example')
     ).toBeNull();
-});
-
-test('.sortByPriroty can be used to correctly sort mocks', () => {
-    const filter = {
-        url: '/foo',
-        method: 'GET',
-    };
-
-    let response = {
-        status: 200,
-        body: {},
-    };
-
-    const mockDefault = new RestMock(filter, response);
-    const mock10 = new RestMock(filter, response, {
-        priority: 10,
-    });
-    const mock5 = new RestMock(filter, response, {
-        priority: 5,
-    });
-
-    expect([mockDefault, mock10, mock5].sort(RestMock.sortByPriority)).toEqual([
-        mock10,
-        mock5,
-        mockDefault,
-    ]);
-
-    expect([mockDefault, mock5, mock10].sort(RestMock.sortByPriority)).toEqual([
-        mock10,
-        mock5,
-        mockDefault,
-    ]);
-
-    expect([mock10, mock5, mockDefault].sort(RestMock.sortByPriority)).toEqual([
-        mock10,
-        mock5,
-        mockDefault,
-    ]);
 });

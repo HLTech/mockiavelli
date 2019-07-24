@@ -136,6 +136,7 @@ await mocketeer.activate(page);
 #### .mockREST(filter: RequestFilter, response: MockedResponse, options?): RestMock
 
 Respond to xhr and fetch requests that match the `filter` with provided `response`.
+Request are matched based on adding order - most recently added first.
 Pass query params through `query` argument in `filter` object or simply append text to `url`
 
 ###### Arguments
@@ -220,6 +221,7 @@ mocketeer.mockREST(
 #### .mockDELETE(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
 
 Respond to xhr and fetch requests with adequate rest method that match the `filter` with provided `response`.
+Request are matched based on adding order - most recently added first.
 Pass `filter` as an object or as an `url` string.
 Pass query params through `query` argument in `filter` object or simply append text to `url`
 

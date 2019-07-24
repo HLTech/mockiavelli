@@ -467,47 +467,173 @@ describe('Mocketeer integration', () => {
         await expect(mock.getRequest()).resolves.toEqual(expect.anything());
     });
 
-    it('matches only once request with once set to true', async () => {
-        spyOn(console, 'error');
-        await mocketeer.mockREST(requestGetFoo, response200Ok, { once: true });
+    describe('ordering', () => {
+        const makeRequest = () =>
+            page.evaluate(() => fetch('/foo').then(res => res.status));
 
-        const response = await page.evaluate(() =>
-            fetch('/foo').then(res => res.json())
-        );
-
-        await expect(response).toEqual(response200Ok.body);
-
-        const statusCode = await page.evaluate(() =>
-            fetch('/foo').then(res => res.status)
-        );
-        await expect(statusCode).toBe(404);
-        expect(console.error).toHaveBeenCalled();
-    });
-
-    it('matches only once every request in order with once set to true', async () => {
-        await mocketeer.mockREST(
-            requestGetFoo,
-            { status: 200, body: {} },
-            { once: true }
-        );
-        await mocketeer.mockREST(
-            requestGetFoo,
-            { status: 201, body: {} },
-            {
+        it('matches only once request with once set to true', async () => {
+            spyOn(console, 'error');
+            await mocketeer.mockREST(requestGetFoo, response200Ok, {
                 once: true,
-            }
-        );
+            });
 
-        const firstResponseStatus = await page.evaluate(() =>
-            fetch('/foo').then(res => res.status)
-        );
+            await expect(makeRequest()).resolves.toBe(200);
 
-        await expect(firstResponseStatus).toBe(200);
+            await expect(makeRequest()).resolves.toBe(404);
+            expect(console.error).toHaveBeenCalled();
+        });
 
-        const secondResponseStatus = await page.evaluate(() =>
-            fetch('/foo').then(res => res.status)
-        );
+        it('matches only once request with once set to true', async () => {
+            await mocketeer.mockREST(requestGetFoo, { status: 200, body: {} });
 
-        await expect(secondResponseStatus).toBe(201);
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 201, body: {} },
+                {
+                    once: true,
+                }
+            );
+
+            await expect(makeRequest()).resolves.toBe(201);
+            await expect(makeRequest()).resolves.toBe(200);
+            await expect(makeRequest()).resolves.toBe(200);
+        });
+
+        it('matches only once every request in order with once set to true', async () => {
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 200, body: {} },
+                { once: true }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 201, body: {} },
+                {
+                    once: true,
+                }
+            );
+
+            await expect(makeRequest()).resolves.toBe(201);
+            await expect(makeRequest()).resolves.toBe(200);
+        });
+
+        it('matches newest request when added mock with same filter', async () => {
+            await mocketeer.mockREST(requestGetFoo, { status: 200, body: {} });
+            await expect(makeRequest()).resolves.toBe(200);
+
+            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+            await expect(makeRequest()).resolves.toBe(201);
+        });
+
+        it('matches newest request when multiple mocks have same filter', async () => {
+            await mocketeer.mockREST(requestGetFoo, { status: 200, body: {} });
+            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+
+            await expect(makeRequest()).resolves.toBe(201);
+        });
+
+        it('matches newest request when added mock with same filter and older mock has once set to true ', async () => {
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 200, body: {} },
+                { once: true }
+            );
+            await expect(makeRequest()).resolves.toBe(200);
+
+            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+            await expect(makeRequest()).resolves.toBe(201);
+        });
+
+        it('matches requests with once set to true in correct order when multiple mocks have same filter', async () => {
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 200, body: {} },
+                { once: true }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 201, body: {} },
+                {
+                    once: true,
+                }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 202, body: {} },
+                {
+                    once: true,
+                }
+            );
+
+            await expect(makeRequest()).resolves.toBe(202);
+            await expect(makeRequest()).resolves.toBe(201);
+            await expect(makeRequest()).resolves.toBe(200);
+        });
+
+        it('matches request with highest priority when multiple mocks have same filter', async () => {
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 200, body: {} },
+                { priority: 10 }
+            );
+
+            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 202, body: {} },
+                { priority: 5 }
+            );
+
+            await expect(makeRequest()).resolves.toBe(200);
+        });
+
+        it('matches request in correct order with priority and once set to true when multiple mocks have same filter', async () => {
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 200, body: {} },
+                { once: true }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 201, body: {} },
+                { once: true, priority: 10 }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 202, body: {} },
+                { once: true }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 203, body: {} },
+                { once: true, priority: 10 }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 204, body: {} },
+                { once: true, priority: 5 }
+            );
+
+            await mocketeer.mockREST(
+                requestGetFoo,
+                { status: 205, body: {} },
+                { once: true }
+            );
+
+            await expect(makeRequest()).resolves.toBe(203);
+            await expect(makeRequest()).resolves.toBe(201);
+            await expect(makeRequest()).resolves.toBe(204);
+            await expect(makeRequest()).resolves.toBe(205);
+            await expect(makeRequest()).resolves.toBe(202);
+            await expect(makeRequest()).resolves.toBe(200);
+        });
     });
 });
