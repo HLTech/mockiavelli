@@ -137,7 +137,8 @@ await mocketeer.activate(page);
 
 Respond to xhr and fetch requests that match the `filter` with provided `response`.
 Request are matched based on adding order - most recently added first.
-Pass query params through `query` argument in `filter` object or simply append text to `url`
+Pass query params through `query` argument in `filter` object or simply append text to `url`.
+`url` can contain path parameters for example `/api/client/:id` which you can then access through params object.
 
 ###### Arguments
 
@@ -306,6 +307,22 @@ mocketeer.mockGET('/api/clients?city=Bristol&limit=10', {
 });
 ```
 
+###### Example of GET request with id as path parameter
+
+```typescript
+mocketeer.mockGET(
+    {
+        url: '/api/client/:id',
+    },
+    {
+        status: 200,
+        body: {
+            clientId: 12345,
+        },
+    }
+);
+```
+
 ---
 
 ### RestMock
@@ -331,6 +348,7 @@ Promise resolved with `MatchedRequest` - object representing request that matche
 -   body _(any)_ - JSON deserialized request's post body, if any
 -   rawBody _(string | undefined)_ - raw request's post body, if any
 -   type _(string)_ - request's resource type. Possible values are `xhr` and `fetch`
+-   params _(object)_ - object with path parameters specified in `url`
 
 ###### Example
 
@@ -351,4 +369,26 @@ const createClientMock = mocketeer.mockREST(
 // send request from page
 
 console.log(await createClientMock.getRequest());
+```
+
+###### Example of path parameter
+
+```typescript
+const createClientMock = mocketeer.mockREST(
+    {
+        method: 'POST',
+        url: '/api/client/:id',
+    },
+    {
+        status: 201,
+        body: {
+            clientId: 12345,
+        },
+    }
+);
+
+// send request from page
+const request = await createClientMock.getRequest();
+
+console.log(request.params.id);
 ```

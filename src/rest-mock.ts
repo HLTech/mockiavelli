@@ -6,13 +6,16 @@ import {
     MockedResponse,
     MockOptions,
     ParsedFilterRequest,
+    PathParameters,
     QueryObject,
+    ReceivedRequest,
     RequestFilter,
 } from './types';
-import { waitFor, TimeoutError, nth } from './utils';
+import { waitFor, TimeoutError, nth, arePathsDifferent } from './utils';
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
 import { stringify } from 'querystring';
+import pathToRegexp, { Key } from 'path-to-regexp';
 
 const debug = dbg('mocketeer:rest');
 
@@ -24,11 +27,14 @@ export class RestMock implements IMock {
     private filter: ParsedFilterRequest;
     private response: MockedResponse;
     private requests: Array<MatchedRequest> = [];
+    private debugId = debugId++;
+
     public options: MockOptions = {
         priority: 0,
         once: false,
     };
-    private debugId = debugId++;
+    private paramNames: (string | number)[] = [];
+
     constructor(
         filter: RequestFilter,
         response: MockedResponse,
@@ -84,7 +90,7 @@ export class RestMock implements IMock {
     }
 
     public getResponseForRequest(
-        request: MatchedRequest,
+        request: ReceivedRequest,
         pageOrigin: string
     ): MockedResponse | null {
         if (this.options.once && this.requests.length > 0) {
@@ -96,7 +102,7 @@ export class RestMock implements IMock {
             return null;
         }
 
-        this.requests.push(request);
+        this.requests.push({ ...request, params: this.getParams(request) });
         return {
             status: this.response.status,
             headers: {
@@ -109,7 +115,7 @@ export class RestMock implements IMock {
     private static allowedTypes: ResourceType[] = ['fetch', 'xhr'];
 
     private isMatchingRequest(
-        request: MatchedRequest,
+        request: ReceivedRequest,
         pageOrigin: string
     ): boolean {
         if (RestMock.allowedTypes.indexOf(request.type) === -1) {
@@ -126,17 +132,22 @@ export class RestMock implements IMock {
             return false;
         }
 
-        const filterRequestUrlToCompare = this.filter.hostname
-            ? this.filter.hostname + this.filter.path
-            : pageOrigin + this.filter.path;
+        const filterRequestOrigin = this.filter.hostname || pageOrigin;
 
-        const requestUrlToCompare = request.hostname + request.path;
-
-        if (filterRequestUrlToCompare !== requestUrlToCompare) {
+        if (filterRequestOrigin !== request.hostname) {
             this.debugMiss(
                 'url',
-                requestUrlToCompare || `Request url missing`,
-                filterRequestUrlToCompare || `Filter url missing`
+                request.hostname || `Request origin missing`,
+                filterRequestOrigin || `Filter origin missing`
+            );
+            return false;
+        }
+
+        if (arePathsDifferent(request.path, this.filter.pathRegex)) {
+            this.debugMiss(
+                'url',
+                request.path || `Request path missing`,
+                this.filter.path || `Filter path missing`
             );
             return false;
         }
@@ -161,12 +172,22 @@ export class RestMock implements IMock {
         // TODO find a better alternative for url.parse
         const { protocol, host, pathname, query } = parse(filter.url, true);
         const hasHostname = protocol && host;
+        const keys: Key[] = [];
+        const pathRegex = pathname ? pathToRegexp(pathname, keys) : undefined;
+        this.paramNames = keys.map((key: Key) => key.name);
+
+        const pathParams: PathParameters = {};
+        this.paramNames.forEach(
+            (param: string | number) => (pathParams[param] = '')
+        );
 
         return {
             method: filter.method,
             hostname: hasHostname ? `${protocol}//${host}` : undefined,
             query: filter.query ? filter.query : query,
             path: pathname,
+            pathParams,
+            pathRegex,
         };
     }
 
@@ -186,5 +207,23 @@ export class RestMock implements IMock {
         const qs = stringify(this.filter.query);
         return `(${this.debugId}) ${this.filter.method} ${this.filter.path +
             (qs ? '?' + qs : '')}`;
+    }
+
+    private getParams(request: ReceivedRequest): PathParameters {
+        if (!this.filter.pathRegex || !this.filter.path) {
+            return {};
+        }
+
+        const matchedRegexp =
+            request.path && this.filter.pathRegex.exec(request.path);
+        const matchedParams = matchedRegexp ? matchedRegexp.slice(1) : [];
+
+        return matchedParams.reduce(
+            (pathParams: PathParameters, param: string, index: number) => ({
+                ...pathParams,
+                [this.paramNames[index]]: param,
+            }),
+            {}
+        );
     }
 }

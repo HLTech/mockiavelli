@@ -16,6 +16,8 @@ export interface ParsedFilterRequest {
     hostname: string | undefined;
     path: string | undefined;
     query: QueryObject;
+    pathParams: PathParameters;
+    pathRegex: RegExp | undefined;
 }
 
 export interface MockedResponse {
@@ -24,7 +26,7 @@ export interface MockedResponse {
     body: any;
 }
 
-export interface MatchedRequest {
+export interface ReceivedRequest {
     url: string;
     method: string;
     hostname: string;
@@ -34,6 +36,12 @@ export interface MatchedRequest {
     type: ResourceType;
     path: string | undefined;
     query: QueryObject;
+}
+
+export type PathParameters = Record<string, string | number>;
+
+export interface MatchedRequest extends ReceivedRequest {
+    params: PathParameters;
 }
 
 export interface MockOptions {
@@ -47,6 +55,7 @@ export interface IMock {
         request: MatchedRequest,
         origin: string
     ): MockedResponse | null;
+    options: MockOptions;
 }
 
 export enum REST_METHOD {

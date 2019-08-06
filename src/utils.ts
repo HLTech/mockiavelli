@@ -1,8 +1,8 @@
 import { parse } from 'url';
 import { Request } from 'puppeteer';
-import { MatchedRequest } from './types';
+import { ReceivedRequest } from './types';
 
-export function requestToPlainObject(request: Request): MatchedRequest {
+export function requestToPlainObject(request: Request): ReceivedRequest {
     const url = request.url();
     const rawBody = request.postData();
     // TODO find a better alternative for url.parse
@@ -78,4 +78,12 @@ export function addMockByPriority<T extends { options: { priority: number } }>(
     const calculatedIndex = index === -1 ? mockArr.length : index;
     mockArr.splice(calculatedIndex, 0, mock);
     return mockArr;
+}
+
+export function arePathsDifferent(path?: string, paramsRegexp?: RegExp) {
+    if (paramsRegexp && path) {
+        return !paramsRegexp.test(path);
+    }
+
+    return false;
 }

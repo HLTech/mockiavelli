@@ -1,4 +1,4 @@
-import { MatchedRequest } from '../../src';
+import { ReceivedRequest } from '../../src';
 import { createRestMock } from './fixtures/request';
 
 test('.getResponseForRequest matches GET request', () => {
@@ -254,7 +254,61 @@ test('.getResponseForRequest matches GET request first time when once option is 
 
 test('.getResponseForRequest does not match second GET request when once option is set to true', () => {
     const mock = createRestMock(undefined, { once: true });
-    const exampleRequest: MatchedRequest = {
+    const exampleRequest: ReceivedRequest = {
+        path: '/foo',
+        method: 'GET',
+        url: 'http://example/foo',
+        type: 'xhr',
+        headers: {},
+        query: {},
+        hostname: 'http://example',
+    };
+    mock.getResponseForRequest(exampleRequest, 'http://example');
+
+    expect(
+        mock.getResponseForRequest(exampleRequest, 'http://example')
+    ).toBeNull();
+});
+
+test('.getResponseForRequest matches GET request with path variable', () => {
+    const mock = createRestMock({ url: '/foo/:id' });
+    const exampleRequest: ReceivedRequest = {
+        path: '/foo/param',
+        method: 'GET',
+        url: 'http://example/foo/param',
+        type: 'xhr',
+        headers: {},
+        query: {},
+        hostname: 'http://example',
+    };
+    mock.getResponseForRequest(exampleRequest, 'http://example');
+
+    expect(
+        mock.getResponseForRequest(exampleRequest, 'http://example')
+    ).not.toBeNull();
+});
+
+test('.getResponseForRequest matches GET request with multiple path variables', () => {
+    const mock = createRestMock({ url: '/foo/:id/:resource' });
+    const exampleRequest: ReceivedRequest = {
+        path: '/foo/param/second',
+        method: 'GET',
+        url: 'http://example/foo/param/second',
+        type: 'xhr',
+        headers: {},
+        query: {},
+        hostname: 'http://example',
+    };
+    mock.getResponseForRequest(exampleRequest, 'http://example');
+
+    expect(
+        mock.getResponseForRequest(exampleRequest, 'http://example')
+    ).not.toBeNull();
+});
+
+test('.getResponseForRequest does not match GET request when path variables are set and not present in request', () => {
+    const mock = createRestMock({ url: '/foo/:id' });
+    const exampleRequest: ReceivedRequest = {
         path: '/foo',
         method: 'GET',
         url: 'http://example/foo',

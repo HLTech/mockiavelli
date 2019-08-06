@@ -636,4 +636,84 @@ describe('Mocketeer integration', () => {
             await expect(makeRequest()).resolves.toBe(200);
         });
     });
+
+    describe('path variables', () => {
+        it('mocks fetch GET request with path variable as number', async () => {
+            const mock = await mocketeer.mockGET('/foo/:id', response200Empty);
+
+            await page.evaluate(() => {
+                fetch('/foo/123', {
+                    method: 'GET',
+                });
+            });
+            const request = await mock.getRequest();
+
+            await expect(request.params.id).toBe('123');
+        });
+
+        it('mocks fetch GET request with path variable as string', async () => {
+            const mock = await mocketeer.mockGET('/foo/:id', response200Empty);
+
+            await page.evaluate(() => {
+                fetch('/foo/test', {
+                    method: 'GET',
+                });
+            });
+            const request = await mock.getRequest();
+
+            await expect(request.params.id).toBe('test');
+        });
+
+        it('mocks fetch GET request with path variable and query', async () => {
+            const mock = await mocketeer.mockREST(
+                { url: '/foo/:id?param=fooParam', method: 'GET' },
+                response200Empty
+            );
+
+            await page.evaluate(() => {
+                fetch('/foo/123?param=fooParam', {
+                    method: 'GET',
+                });
+            });
+            const request = await mock.getRequest();
+
+            await expect(request.params.id).toBe('123');
+        });
+
+        it('mocks fetch GET request with schema, origin, path variable and query', async () => {
+            const mock = await mocketeer.mockREST(
+                {
+                    url: 'https://localhost:3000/foo/:id?param=fooParam',
+                    method: 'GET',
+                },
+                response200Empty
+            );
+
+            await page.evaluate(() => {
+                fetch('https://localhost:3000/foo/123?param=fooParam', {
+                    method: 'GET',
+                });
+            });
+            const request = await mock.getRequest();
+
+            await expect(request.params.id).toBe('123');
+        });
+
+        it('mocks fetch GET request with multiple path variables', async () => {
+            const mock = await mocketeer.mockREST(
+                { url: '/foo/:id/:name', method: 'GET' },
+                response200Empty
+            );
+
+            await page.evaluate(() => {
+                fetch('/foo/123/mike', {
+                    method: 'GET',
+                });
+            });
+            const request = await mock.getRequest();
+
+            await expect(request.params.id).toBe('123');
+            await expect(request.params.name).toBe('mike');
+        });
+    });
 });
