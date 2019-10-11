@@ -1,15 +1,20 @@
 import { parse } from 'url';
 import { Page, Request, ResourceType } from 'puppeteer';
 import dbg from 'debug';
-import { RestMock } from './rest-mock';
+import { Mock } from './mock';
 import {
     MockedResponse,
     MockOptions,
-    RequestFilter,
-    RequestMethodFilter,
+    RequestMatcher,
+    RequestMatcherShort,
     REST_METHOD,
 } from './types';
-import { addMockByPriority, printRequest, requestToPlainObject } from './utils';
+import {
+    addMockByPriority,
+    printRequest,
+    requestToPlainObject,
+    createRequestFilter,
+} from './utils';
 
 const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
 
@@ -20,7 +25,7 @@ export interface MocketeerOptions {
 }
 
 export class Mocketeer {
-    private mocks: RestMock[] = [];
+    private mocks: Mock[] = [];
 
     constructor(options: Partial<MocketeerOptions> = {}) {
         if (options.debug) {
@@ -38,106 +43,67 @@ export class Mocketeer {
         return mocketeer;
     }
 
-    /**
-     * use Mocketeer.setup instead
-     * @deprecated
-     */
-    public async activate(page: Page): Promise<void> {
+    private async activate(page: Page): Promise<void> {
         await page.setRequestInterception(true);
         page.on('request', request => this.onRequest(request));
     }
 
-    /*
-     * Use mockREST instead
-     * @deprecated
-     */
-    public addRestMock(
-        filter: RequestFilter,
+    public mock(
+        filter: RequestMatcher,
         response: MockedResponse,
         options?: Partial<MockOptions>
-    ): RestMock {
-        const mock = new RestMock(filter, response, {
-            ...options,
-        });
-
-        addMockByPriority(this.mocks, mock);
-        return mock;
-    }
-
-    public mockREST(
-        filter: RequestFilter,
-        response: MockedResponse,
-        options?: Partial<MockOptions>
-    ): RestMock {
-        const mock = new RestMock(filter, response, {
-            ...options,
-        });
-
+    ): Mock {
+        const filterObject = createRequestFilter(filter);
+        const mock = new Mock(filterObject, response, { ...options });
         addMockByPriority(this.mocks, mock);
         return mock;
     }
 
     public mockGET(
-        filter: RequestMethodFilter | string,
+        filter: RequestMatcherShort,
         response: MockedResponse,
         options?: Partial<MockOptions>
-    ): RestMock {
-        const filterObject =
-            typeof filter === 'string' ? { url: filter } : filter;
-
-        return this.mockREST(
-            { ...filterObject, method: REST_METHOD.GET },
-            response,
-            options
-        );
+    ): Mock {
+        const filterObject = createRequestFilter(filter, {
+            method: REST_METHOD.GET,
+        });
+        return this.mock(filterObject, response, options);
     }
 
     public mockPOST(
-        filter: RequestMethodFilter | string,
+        filter: RequestMatcherShort,
         response: MockedResponse,
         options?: Partial<MockOptions>
-    ): RestMock {
-        const filterObject =
-            typeof filter === 'string' ? { url: filter } : filter;
-
-        return this.mockREST(
-            { ...filterObject, method: REST_METHOD.POST },
-            response,
-            options
-        );
+    ): Mock {
+        const filterObject = createRequestFilter(filter, {
+            method: REST_METHOD.POST,
+        });
+        return this.mock(filterObject, response, options);
     }
 
     public mockPUT(
-        filter: RequestMethodFilter | string,
+        filter: RequestMatcherShort,
         response: MockedResponse,
         options?: Partial<MockOptions>
-    ): RestMock {
-        const filterObject =
-            typeof filter === 'string' ? { url: filter } : filter;
-
-        return this.mockREST(
-            { ...filterObject, method: REST_METHOD.PUT },
-            response,
-            options
-        );
+    ): Mock {
+        const filterObject = createRequestFilter(filter, {
+            method: REST_METHOD.PUT,
+        });
+        return this.mock(filterObject, response, options);
     }
 
     public mockDELETE(
-        filter: RequestMethodFilter | string,
+        filter: RequestMatcherShort,
         response: MockedResponse,
         options?: Partial<MockOptions>
-    ): RestMock {
-        const filterObject =
-            typeof filter === 'string' ? { url: filter } : filter;
-
-        return this.mockREST(
-            { ...filterObject, method: REST_METHOD.DELETE },
-            response,
-            options
-        );
+    ): Mock {
+        const filterObject = createRequestFilter(filter, {
+            method: REST_METHOD.DELETE,
+        });
+        return this.mock(filterObject, response, options);
     }
 
-    public removeMock(mock: RestMock): RestMock | void {
+    public removeMock(mock: Mock): Mock | void {
         const index = this.mocks.indexOf(mock);
         if (index > -1) {
             return this.mocks.splice(index, 1)[0];
@@ -147,7 +113,7 @@ export class Mocketeer {
     private async onRequest(request: Request): Promise<void> {
         // Serialize request
         const requestData = requestToPlainObject(request);
-        const typeMatch =
+        const should404 =
             interceptedTypes.indexOf(request.resourceType()) !== -1;
 
         debug(
@@ -155,17 +121,6 @@ export class Mocketeer {
                 requestData.url
             } `
         );
-
-        // Do not intercept non xhr/fetch requests
-        if (!typeMatch) {
-            debug(`< res: continue`);
-            try {
-                return await request.continue();
-            } catch (e) {
-                // Request could be already handled so ignore this error
-                return;
-            }
-        }
 
         // Obtain request url from originating frame url
         const originFrame = request.frame();
@@ -186,7 +141,9 @@ export class Mocketeer {
                             response.body
                         }`
                     );
-                    return await request.respond(response);
+                    return await request.respond({
+                        ...response,
+                    });
                 } catch (e) {
                     console.error(
                         `Failed to reply with mocked response for ${printRequest(
@@ -200,11 +157,24 @@ export class Mocketeer {
         }
 
         // Request was not matched - log error and return 404
-        debug(`< res: status=404`);
-        console.error(`Mock not found for request: ${printRequest(request)}`);
-        return request.respond({
-            status: 404,
-            body: 'No mock provided for request',
-        });
+        if (should404) {
+            debug(`< res: status=404`);
+            console.error(
+                `Mock not found for request: ${printRequest(request)}`
+            );
+            return request.respond({
+                status: 404,
+                body: 'No mock provided for request',
+            });
+        }
+
+        // Do not intercept non xhr/fetch requests
+        debug(`< res: continue`);
+        try {
+            return await request.continue();
+        } catch (e) {
+            // Request could be already handled so ignore this error
+            return;
+        }
     }
 }

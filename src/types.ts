@@ -2,17 +2,18 @@ import { ResourceType } from 'puppeteer';
 
 export type QueryObject = Record<string, string | string[]>;
 
-export interface RequestMethodFilter {
+export type RequestMatcher = RequestMatcherObject | string;
+
+export interface RequestMatcherObject {
+    method?: string;
     url: string;
     query?: QueryObject;
 }
 
-export interface RequestFilter extends RequestMethodFilter {
-    method: string;
-}
+export type RequestMatcherShort = Omit<RequestMatcherObject, 'method'> | string;
 
 export interface ParsedFilterRequest {
-    method: string;
+    method?: string;
     hostname: string | undefined;
     path: string | undefined;
     query: QueryObject;
@@ -23,7 +24,7 @@ export interface ParsedFilterRequest {
 export interface MockedResponse {
     status: number;
     headers?: Record<string, string>;
-    body: any;
+    body?: any;
 }
 
 export interface ReceivedRequest {

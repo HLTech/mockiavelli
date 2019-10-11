@@ -40,7 +40,7 @@ module.exports = {
                     tsConfig: 'test/integration/tsconfig.json',
                 },
             },
-            resetMocks: true,
+            restoreMocks: true,
         },
     ],
 };

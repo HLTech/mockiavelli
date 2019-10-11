@@ -1,5 +1,5 @@
 import { Request } from 'puppeteer';
-import { MockOptions, RequestFilter, RestMock } from '../../../src';
+import { MockOptions, RequestMatcherObject, Mock } from '../../../src';
 
 export const createMockRequest = (): jest.Mocked<Request> => ({
     postData: jest.fn().mockReturnValue(''),
@@ -27,10 +27,10 @@ const mockedResponse = {
 };
 
 export const createRestMock = (
-    change: Partial<RequestFilter> = {},
+    change: Partial<RequestMatcherObject> = {},
     options?: Partial<MockOptions>
 ) => {
-    return new RestMock(
+    return new Mock(
         {
             url: '/foo',
             method: 'GET',

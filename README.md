@@ -22,28 +22,21 @@ test('can create client', async () => {
     const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
-    const mock = await mocketeer.mockREST(
-        {
-            method: 'POST',
-            path: '/api/user',
+    const mock = await mocketeer.mockPost('/api/user', {
+        status: 201,
+        body: {
+            userId: '123',
         },
-        {
-            status: 201,
-            body: {
-                userId: '123',
-            },
-        }
-    );
+    });
 
     // Do something on the page
     await page.type('.email', 'email@example.com');
     await page.click('.submit-button');
 
-    // Verify request content
-    await expect(mock.getRequest()).resolves.toMatchObject({
-        body: {
-            user_email: 'email@example.com',
-        },
+    // Wait for mock to be called and verify request content
+    const request = await mock.getRequest();
+    expect(request.body).toEqual({
+        user_email: 'email@example.com',
     });
 });
 ```
@@ -64,27 +57,22 @@ import { Mocketeer } from '@hltech/mocketeer';
     const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
-    const mock = await mocketeer.mockREST(
-        {
-            method: 'POST',
-            path: '/api/user',
+    const mock = await mocketeer.mockPost('/api/user', {
+        status: 201,
+        body: {
+            userId: '123',
         },
-        {
-            status: 201,
-            body: {
-                error: false,
-            },
-        }
-    );
+    });
 
     // Do something on the page
     await page.type('.email', 'email@example.com');
     await page.click('.submit-button');
 
     // Wait for mock to be called and verify request content
-    const req = await mock.getRequest();
-    console.log(req.method); // POST
-    console.log(req.body); // { user_email: "email@example.com" }
+    const request = await mock.getRequest();
+    expect(request.body).toEqual({
+        user_email: 'email@example.com',
+    });
 })();
 ```
 
@@ -96,7 +84,7 @@ import { Mocketeer } from '@hltech/mocketeer';
 
 Factory method used to set-up request mocking on provided Puppeteer Page. It creates and returns an instance of Mocketeer
 
-Mocketeer will intercept all requests made by the page and match them to mocks set up with `mocketeer.addRestMock`.
+Mocketeer will intercept all requests made by the page and match them to mocks set up with `mocketeer.mock`.
 If request does not match any mocks, it will be responded with `404 Not Found`.
 
 ###### Arguments
@@ -112,10 +100,6 @@ const browser = await puppeteer.launch();
 const page = await browser.newPage();
 const mocketeer = await Mocketeer.setup(page);
 ```
-
-#### ~~.activate(page: Page): Promise\<void\>~~ (depracated)
-
-Activate mocketeer on a given page.
 
 ###### Arguments
 
@@ -133,7 +117,7 @@ const page = await browser.newPage();
 await mocketeer.activate(page);
 ```
 
-#### .mockREST(filter: RequestFilter, response: MockedResponse, options?): RestMock
+#### .mock(filter: RequestFilter, response: MockedResponse, options?): RestMock
 
 Respond to xhr and fetch requests that match the `filter` with provided `response`.
 Request are matched based on adding order - most recently added first.
@@ -161,7 +145,7 @@ Newly created instance of `RestMock`.
 ###### Example
 
 ```typescript
-mocketeer.mockREST(
+mocketeer.mock(
     {
         method: 'POST',
         url: '/api/clients',
@@ -178,7 +162,7 @@ mocketeer.mockREST(
 ###### Example with query passed as an argument
 
 ```typescript
-mocketeer.mockREST(
+mocketeer.mock(
     {
         method: 'GET',
         url: '/api/clients',
@@ -199,7 +183,7 @@ mocketeer.mockREST(
 ###### Example with queryString appended to the url
 
 ```typescript
-mocketeer.mockREST(
+mocketeer.mock(
     {
         method: 'GET',
         url: '/api/clients?city=Bristol&limit=10',

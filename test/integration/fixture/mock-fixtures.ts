@@ -1,40 +1,40 @@
-import { RequestFilter, RequestMethodFilter } from '../../../src/types';
+import { RequestMatcherObject, RequestMatcherShort } from '../../../src/types';
 
-export const requestFoo: RequestMethodFilter = {
+export const requestFoo: RequestMatcherShort = {
     url: '/foo',
 };
 
-export const requestFooWithQuery: RequestMethodFilter = {
-    url: '/foo',
-    query: {
-        param: 'fooParam',
-    },
-};
-
-export const requestGetFoo: RequestFilter = {
-    method: 'GET',
-    url: '/foo',
-};
-
-export const requestGetFooWithQuery: RequestFilter = {
-    method: 'GET',
+export const requestFooWithQuery: RequestMatcherShort = {
     url: '/foo',
     query: {
         param: 'fooParam',
     },
 };
 
-export const requestPostFoo: RequestFilter = {
+export const requestGetFoo: RequestMatcherObject = {
+    method: 'GET',
+    url: '/foo',
+};
+
+export const requestGetFooWithQuery: RequestMatcherObject = {
+    method: 'GET',
+    url: '/foo',
+    query: {
+        param: 'fooParam',
+    },
+};
+
+export const requestPostFoo: RequestMatcherObject = {
     method: 'POST',
     url: '/foo',
 };
 
-export const requestPutFoo: RequestFilter = {
+export const requestPutFoo: RequestMatcherObject = {
     method: 'PUT',
     url: '/foo',
 };
 
-export const requestDeleteFoo: RequestFilter = {
+export const requestDeleteFoo: RequestMatcherObject = {
     method: 'DELETE',
     url: '/foo',
 };

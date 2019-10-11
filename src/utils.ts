@@ -1,6 +1,6 @@
 import { parse } from 'url';
 import { Request } from 'puppeteer';
-import { ReceivedRequest } from './types';
+import { ReceivedRequest, RequestMatcher, RequestMatcherObject } from './types';
 
 export function requestToPlainObject(request: Request): ReceivedRequest {
     const url = request.url();
@@ -86,4 +86,21 @@ export function arePathsDifferent(path?: string, paramsRegexp?: RegExp) {
     }
 
     return false;
+}
+
+export function createRequestFilter(
+    input: RequestMatcher,
+    defaults: Omit<RequestMatcherObject, 'url'> = {}
+): RequestMatcherObject {
+    if (typeof input === 'string') {
+        return {
+            ...defaults,
+            url: input,
+        };
+    } else {
+        return {
+            ...defaults,
+            ...input,
+        };
+    }
 }

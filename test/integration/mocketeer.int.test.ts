@@ -46,7 +46,7 @@ describe('Mocketeer integration', () => {
 
     describe('mockREST', () => {
         it('mocks fetch GET request', async () => {
-            await mocketeer.mockREST(requestGetFoo, response200Ok);
+            await mocketeer.mock(requestGetFoo, response200Ok);
 
             await page.evaluate(() => {
                 fetch('/foo')
@@ -61,7 +61,7 @@ describe('Mocketeer integration', () => {
         });
 
         it('mocks fetch GET request with query', async () => {
-            await mocketeer.mockREST(requestGetFooWithQuery, response200Ok);
+            await mocketeer.mock(requestGetFooWithQuery, response200Ok);
 
             await page.evaluate(() => {
                 fetch('/foo?param=fooParam')
@@ -76,7 +76,7 @@ describe('Mocketeer integration', () => {
         });
 
         it('mocks fetch POST request ', async () => {
-            await mocketeer.mockREST(requestPostFoo, response200Ok);
+            await mocketeer.mock(requestPostFoo, response200Ok);
 
             await page.evaluate(() => {
                 fetch('/foo', { method: 'POST' })
@@ -91,7 +91,7 @@ describe('Mocketeer integration', () => {
         });
 
         it('mocks fetch PUT request ', async () => {
-            await mocketeer.mockREST(requestPutFoo, response200Ok);
+            await mocketeer.mock(requestPutFoo, response200Ok);
 
             await page.evaluate(() => {
                 fetch('/foo', { method: 'PUT' })
@@ -106,7 +106,7 @@ describe('Mocketeer integration', () => {
         });
 
         it('mocks fetch DELETE request ', async () => {
-            await mocketeer.mockREST(requestDeleteFoo, response200Ok);
+            await mocketeer.mock(requestDeleteFoo, response200Ok);
 
             await page.evaluate(() => {
                 fetch('/foo', { method: 'DELETE' })
@@ -303,7 +303,7 @@ describe('Mocketeer integration', () => {
     });
 
     it('mocks multiple requests', async () => {
-        await mocketeer.mockREST(requestGetFoo, response200Empty);
+        await mocketeer.mock(requestGetFoo, response200Empty);
 
         await page.evaluate(() => {
             fetch('/foo').then(() => (document.body.innerHTML += '1'));
@@ -317,7 +317,7 @@ describe('Mocketeer integration', () => {
     });
 
     it('mocks response with status 500', async () => {
-        await mocketeer.mockREST(requestGetFoo, {
+        await mocketeer.mock(requestGetFoo, {
             status: 500,
             body: {},
         });
@@ -335,7 +335,7 @@ describe('Mocketeer integration', () => {
     });
 
     it('records intercepted request', async () => {
-        const mock = await mocketeer.mockREST(requestPostFoo, response200Empty);
+        const mock = await mocketeer.mock(requestPostFoo, response200Empty);
 
         await page.evaluate(() => {
             fetch('/foo', {
@@ -360,7 +360,7 @@ describe('Mocketeer integration', () => {
     });
 
     it('.getRequest() rejects when request matching mock was not found', async () => {
-        const mock = await mocketeer.addRestMock(
+        const mock = await mocketeer.mock(
             { method: 'GET', url: '/some_endpoint' },
             { status: 200, body: 'OK' }
         );
@@ -384,7 +384,7 @@ describe('Mocketeer integration', () => {
     });
 
     it('notifies when mock was called', async () => {
-        const mock = await mocketeer.mockREST(requestGetFoo, response200Empty);
+        const mock = await mocketeer.mock(requestGetFoo, response200Empty);
 
         await page.evaluate(() => {
             setTimeout(() => {
@@ -396,9 +396,9 @@ describe('Mocketeer integration', () => {
     });
 
     it('can set priorities on mocks', async () => {
-        const mock = await mocketeer.mockREST(requestGetFoo, response200Empty);
+        const mock = await mocketeer.mock(requestGetFoo, response200Empty);
 
-        const mockWithPriority = await mocketeer.mockREST(
+        const mockWithPriority = await mocketeer.mock(
             requestGetFoo,
             response200Empty,
             {
@@ -419,7 +419,7 @@ describe('Mocketeer integration', () => {
     });
 
     it('can remove mock so it is no longer called', async () => {
-        const mock = await mocketeer.mockREST(requestGetFoo, {
+        const mock = await mocketeer.mock(requestGetFoo, {
             status: 200,
             body: { id: 1 },
         });
@@ -436,7 +436,7 @@ describe('Mocketeer integration', () => {
 
         mocketeer.removeMock(mock);
 
-        await mocketeer.mockREST(requestGetFoo, {
+        await mocketeer.mock(requestGetFoo, {
             status: 200,
             body: { id: 2 },
         });
@@ -453,7 +453,7 @@ describe('Mocketeer integration', () => {
     });
 
     it('can inspect requests that are invoke asynchronously', async () => {
-        const mock = await mocketeer.mockREST(requestGetFoo, response200Empty);
+        const mock = await mocketeer.mock(requestGetFoo, response200Empty);
 
         await page.evaluate(() => {
             document.body.innerHTML = 'content';
@@ -473,7 +473,7 @@ describe('Mocketeer integration', () => {
 
         it('matches only once request with once set to true', async () => {
             spyOn(console, 'error');
-            await mocketeer.mockREST(requestGetFoo, response200Ok, {
+            await mocketeer.mock(requestGetFoo, response200Ok, {
                 once: true,
             });
 
@@ -484,9 +484,9 @@ describe('Mocketeer integration', () => {
         });
 
         it('matches only once request with once set to true', async () => {
-            await mocketeer.mockREST(requestGetFoo, { status: 200, body: {} });
+            await mocketeer.mock(requestGetFoo, { status: 200, body: {} });
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 201, body: {} },
                 {
@@ -500,13 +500,13 @@ describe('Mocketeer integration', () => {
         });
 
         it('matches only once every request in order with once set to true', async () => {
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 200, body: {} },
                 { once: true }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 201, body: {} },
                 {
@@ -519,40 +519,40 @@ describe('Mocketeer integration', () => {
         });
 
         it('matches newest request when added mock with same filter', async () => {
-            await mocketeer.mockREST(requestGetFoo, { status: 200, body: {} });
+            await mocketeer.mock(requestGetFoo, { status: 200, body: {} });
             await expect(makeRequest()).resolves.toBe(200);
 
-            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+            await mocketeer.mock(requestGetFoo, { status: 201, body: {} });
             await expect(makeRequest()).resolves.toBe(201);
         });
 
         it('matches newest request when multiple mocks have same filter', async () => {
-            await mocketeer.mockREST(requestGetFoo, { status: 200, body: {} });
-            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+            await mocketeer.mock(requestGetFoo, { status: 200, body: {} });
+            await mocketeer.mock(requestGetFoo, { status: 201, body: {} });
 
             await expect(makeRequest()).resolves.toBe(201);
         });
 
         it('matches newest request when added mock with same filter and older mock has once set to true ', async () => {
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 200, body: {} },
                 { once: true }
             );
             await expect(makeRequest()).resolves.toBe(200);
 
-            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+            await mocketeer.mock(requestGetFoo, { status: 201, body: {} });
             await expect(makeRequest()).resolves.toBe(201);
         });
 
         it('matches requests with once set to true in correct order when multiple mocks have same filter', async () => {
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 200, body: {} },
                 { once: true }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 201, body: {} },
                 {
@@ -560,7 +560,7 @@ describe('Mocketeer integration', () => {
                 }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 202, body: {} },
                 {
@@ -574,15 +574,15 @@ describe('Mocketeer integration', () => {
         });
 
         it('matches request with highest priority when multiple mocks have same filter', async () => {
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 200, body: {} },
                 { priority: 10 }
             );
 
-            await mocketeer.mockREST(requestGetFoo, { status: 201, body: {} });
+            await mocketeer.mock(requestGetFoo, { status: 201, body: {} });
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 202, body: {} },
                 { priority: 5 }
@@ -592,37 +592,37 @@ describe('Mocketeer integration', () => {
         });
 
         it('matches request in correct order with priority and once set to true when multiple mocks have same filter', async () => {
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 200, body: {} },
                 { once: true }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 201, body: {} },
                 { once: true, priority: 10 }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 202, body: {} },
                 { once: true }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 203, body: {} },
                 { once: true, priority: 10 }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 204, body: {} },
                 { once: true, priority: 5 }
             );
 
-            await mocketeer.mockREST(
+            await mocketeer.mock(
                 requestGetFoo,
                 { status: 205, body: {} },
                 { once: true }
@@ -665,7 +665,7 @@ describe('Mocketeer integration', () => {
         });
 
         it('mocks fetch GET request with path variable and query', async () => {
-            const mock = await mocketeer.mockREST(
+            const mock = await mocketeer.mock(
                 { url: '/foo/:id?param=fooParam', method: 'GET' },
                 response200Empty
             );
@@ -681,7 +681,7 @@ describe('Mocketeer integration', () => {
         });
 
         it('mocks fetch GET request with schema, origin, path variable and query', async () => {
-            const mock = await mocketeer.mockREST(
+            const mock = await mocketeer.mock(
                 {
                     url: 'https://localhost:3000/foo/:id?param=fooParam',
                     method: 'GET',
@@ -700,7 +700,7 @@ describe('Mocketeer integration', () => {
         });
 
         it('mocks fetch GET request with multiple path variables', async () => {
-            const mock = await mocketeer.mockREST(
+            const mock = await mocketeer.mock(
                 { url: '/foo/:id/:name', method: 'GET' },
                 response200Empty
             );
@@ -715,5 +715,71 @@ describe('Mocketeer integration', () => {
             await expect(request.params.id).toBe('123');
             await expect(request.params.name).toBe('mike');
         });
+    });
+
+    test('does not mock request to assets (scripts, styles) by default', async () => {
+        await page.goto(`http://localhost:${PORT}/page1.html`);
+        await expect(page.title()).resolves.toEqual('page1');
+        await expect(
+            page.evaluate(() => window['scriptLoaded'])
+        ).resolves.toEqual(true);
+        await expect(
+            page.evaluate(() =>
+                window.getComputedStyle(document.body).getPropertyValue('color')
+            )
+        ).resolves.toEqual('rgb(255, 0, 0)');
+    });
+
+    test('respond with 404 for unmocked fetch requests', async () => {
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+        await expect(
+            page.evaluate(() => fetch('/unmocked').then(res => res.status))
+        ).resolves.toEqual(404);
+    });
+
+    test('respond with 404 for unmocked XHR requests', async () => {
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+        await expect(
+            page.evaluate(
+                () =>
+                    new Promise(resolve => {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('GET', '/unmocked', true);
+                        xhr.onloadend = () => resolve(xhr.status);
+                        xhr.send(null);
+                    })
+            )
+        ).resolves.toEqual(404);
+    });
+
+    test('can mock redirect requests', async () => {
+        await mocketeer.mock('/redirect', {
+            status: 302,
+            headers: {
+                Location: `http://localhost:${PORT}/page1.html`,
+            },
+        });
+
+        await page.evaluate(() => {
+            // @ts-ignore
+            window.location = '/redirect';
+        });
+
+        await page.waitForNavigation();
+        await expect(page.title()).resolves.toEqual('page1');
+    });
+
+    test('can mock request to assets', async () => {
+        mocketeer.mock('/script.js', {
+            headers: {
+                'Content-Type': 'text/javascript; charset=UTF-8',
+            },
+            status: 200,
+            body: `window.mockLoaded = true`,
+        });
+        await page.goto(`http://localhost:${PORT}/page1.html`);
+        await expect(
+            page.evaluate(() => window['mockLoaded'])
+        ).resolves.toEqual(true);
     });
 });

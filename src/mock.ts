@@ -1,4 +1,3 @@
-import { ResourceType } from 'puppeteer';
 import dbg from 'debug';
 import {
     IMock,
@@ -9,7 +8,7 @@ import {
     PathParameters,
     QueryObject,
     ReceivedRequest,
-    RequestFilter,
+    RequestMatcherObject,
 } from './types';
 import { waitFor, TimeoutError, nth, arePathsDifferent } from './utils';
 import isEqual from 'lodash.isequal';
@@ -23,7 +22,7 @@ const GET_REQUEST_TIMEOUT = 100;
 
 let debugId = 1;
 
-export class RestMock implements IMock {
+export class Mock implements IMock {
     private filter: ParsedFilterRequest;
     private response: MockedResponse;
     private requests: Array<MatchedRequest> = [];
@@ -36,7 +35,7 @@ export class RestMock implements IMock {
     private paramNames: (string | number)[] = [];
 
     constructor(
-        filter: RequestFilter,
+        filter: RequestMatcherObject,
         response: MockedResponse,
         options: Partial<MockOptions> = {}
     ) {
@@ -103,31 +102,29 @@ export class RestMock implements IMock {
         }
 
         this.requests.push({ ...request, params: this.getParams(request) });
+
+        const headers = {
+            ...{ 'Content-Type': 'application/json' },
+            ...this.response.headers,
+        };
+
+        const body =
+            headers['Content-Type'] === 'application/json'
+                ? JSON.stringify(this.response.body)
+                : this.response.body;
+
         return {
             status: this.response.status,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(this.response.body),
+            headers,
+            body,
         };
     }
-
-    private static allowedTypes: ResourceType[] = ['fetch', 'xhr'];
 
     private isMatchingRequest(
         request: ReceivedRequest,
         pageOrigin: string
     ): boolean {
-        if (RestMock.allowedTypes.indexOf(request.type) === -1) {
-            this.debugMiss(
-                'type',
-                request.type,
-                RestMock.allowedTypes.toString()
-            );
-            return false;
-        }
-
-        if (request.method !== this.filter.method) {
+        if (this.filter.method && request.method !== this.filter.method) {
             this.debugMiss('method', request.method, this.filter.method);
             return false;
         }
@@ -167,7 +164,7 @@ export class RestMock implements IMock {
     }
 
     private createParsedFilterRequest(
-        filter: RequestFilter
+        filter: RequestMatcherObject
     ): ParsedFilterRequest {
         // TODO find a better alternative for url.parse
         const { protocol, host, pathname, query } = parse(filter.url, true);

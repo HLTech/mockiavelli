@@ -1,3 +1,3 @@
 export * from './mocketeer';
-export * from './rest-mock';
+export * from './mock';
 export * from './types';
