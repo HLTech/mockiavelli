@@ -8,6 +8,7 @@ import {
     PathParameters,
     QueryObject,
     ReceivedRequest,
+    MockedResponseObject,
     RequestMatcherObject,
 } from './types';
 import { waitFor, TimeoutError, nth, arePathsDifferent } from './utils';
@@ -91,7 +92,7 @@ export class Mock implements IMock {
     public getResponseForRequest(
         request: ReceivedRequest,
         pageOrigin: string
-    ): MockedResponse | null {
+    ): MockedResponseObject | null {
         if (this.options.once && this.requests.length > 0) {
             this.debug('once', 'Request already matched');
             return null;
@@ -103,21 +104,12 @@ export class Mock implements IMock {
 
         this.requests.push({ ...request, params: this.getParams(request) });
 
-        const headers = {
-            ...{ 'Content-Type': 'application/json' },
-            ...this.response.headers,
-        };
+        const response =
+            typeof this.response === 'function'
+                ? this.response(request)
+                : { ...this.response };
 
-        const body =
-            headers['Content-Type'] === 'application/json'
-                ? JSON.stringify(this.response.body)
-                : this.response.body;
-
-        return {
-            status: this.response.status,
-            headers,
-            body,
-        };
+        return this.applyResponseDefaults(response);
     }
 
     private isMatchingRequest(
@@ -161,6 +153,23 @@ export class Mock implements IMock {
         this.debug('=', `matched mock`);
 
         return true;
+    }
+
+    private applyResponseDefaults(response: MockedResponseObject) {
+        let { status = 200, headers = {}, body } = response;
+
+        // Set default value of Content-Type header
+        headers = {
+            ['content-type']: `'application/json';charset=UTF-8`,
+            ...headers,
+        };
+
+        // Serialize JSON response
+        if (typeof body !== 'string') {
+            body = JSON.stringify(body);
+        }
+
+        return { status, headers, body };
     }
 
     private createParsedFilterRequest(

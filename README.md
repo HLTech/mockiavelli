@@ -22,7 +22,7 @@ test('can create client', async () => {
     const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
-    const mock = await mocketeer.mockPost('/api/user', {
+    const mock = await mocketeer.mockPOST('/api/user', {
         status: 201,
         body: {
             userId: '123',
@@ -57,7 +57,7 @@ import { Mocketeer } from '@hltech/mocketeer';
     const mocketeer = Mocketeer.setup(page);
 
     // Set up a mock
-    const mock = await mocketeer.mockPost('/api/user', {
+    const mock = await mocketeer.mockPOST('/api/user', {
         status: 201,
         body: {
             userId: '123',
@@ -117,20 +117,25 @@ const page = await browser.newPage();
 await mocketeer.activate(page);
 ```
 
-#### .mock(filter: RequestFilter, response: MockedResponse, options?): RestMock
+#### mocketeer.mock(matcher, response, options?)
 
-Respond to xhr and fetch requests that match the `filter` with provided `response`.
+Respond to all requests that match `matcher` with provided `response`.
+
+By default request of any method is matched. You can change it using shorthand `.mockGET`, `.mockPOST`, `.mockPUT`, `.mockDELETE` methods or specify `method` in
+
 Request are matched based on adding order - most recently added first.
-Pass query params through `query` argument in `filter` object or simply append text to `url`.
+
+Query params can be matched through `query` argument in `matcher` object or appened to `url`.
+
 `url` can contain path parameters for example `/api/client/:id` which you can then access through params object.
 
 ###### Arguments
 
--   `filter` _(RequestFilter)_ used to determine if request matches the mock
+-   `matcher` _(string | object)_ used to determine if request matches the mock. Can be a string with request url or an object with following properties:
     -   `method: string`
     -   `url: string`
-    -   `query(optional): QueryObject` object literal which accepts strings and arrays of strings as values, transformed to queryString
--   `response` _(MockedResponse)_ content of mocked response
+    -   `query(optional): object` object literal which accepts strings and arrays of strings as values, transformed to queryString
+-   `response` _(object | function)_ content of mocked response. Can be a object or a function returning object:
     -   `status: number`
     -   `headers: object`
     -   `body: any`
@@ -140,150 +145,36 @@ Pass query params through `query` argument in `filter` object or simply append t
 
 ###### Returns
 
-Newly created instance of `RestMock`.
+Newly created instance of `Mock`.
 
-###### Example
+###### Examples
 
 ```typescript
-mocketeer.mock(
-    {
-        method: 'POST',
-        url: '/api/clients',
-    },
-    {
-        status: 201,
-        body: {
-            clientId: 12345,
+// Basic example
+mocketeer.mock('/api/clients', {
+    status: 200,
+    body: [
+        {
+            id: 1,
+            name: 'Test Client',
         },
-    }
-);
+    ],
+});
 ```
 
-###### Example with query passed as an argument
-
 ```typescript
-mocketeer.mock(
-    {
-        method: 'GET',
-        url: '/api/clients',
-        query: {
-            city: 'Bristol',
-            limit: 10,
-        },
+// Matching by request method
+mocketeer.mockPOST('/api/clients', {
+    status: 201,
+    body: {
+        clientId: 12345,
     },
-    {
-        status: 200,
-        body: {
-            clientId: 12345,
-        },
-    }
-);
+});
 ```
 
-###### Example with queryString appended to the url
-
 ```typescript
-mocketeer.mock(
-    {
-        method: 'GET',
-        url: '/api/clients?city=Bristol&limit=10',
-    },
-    {
-        status: 200,
-        body: {
-            clientId: 12345,
-        },
-    }
-);
-```
-
-#### .mockGET(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
-
-#### .mockPOST(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
-
-#### .mockPUT(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
-
-#### .mockDELETE(filter: RequestMethodFilter | string, response: MockedResponse, options?): RestMock
-
-Respond to xhr and fetch requests with adequate rest method that match the `filter` with provided `response`.
-Request are matched based on adding order - most recently added first.
-Pass `filter` as an object or as an `url` string.
-Pass query params through `query` argument in `filter` object or simply append text to `url`
-
-###### Arguments
-
--   `filter` _(RequestMethodFilter)_ used to determine if request matches the mock
-    -   `url: string`
-    -   `query(optional): QueryObject` object literal which accepts strings and arrays of strings as values, transformed to queryString
--   `filter` _(string)_ `url` used to determine if request matches the mock
--   `response` _(MockedResponse)_ content of mocked response
-    -   `status: number`
-    -   `headers: object`
-    -   `body: any`
--   `options` _(object)_ optional config object
-    -   `prority` _(number)_ when intercepted request matches multiple mock, mocketeer will use the one with highest priority
-    -   `once` _(boolean)_ _(default: false)_ when set to true intercepted request will be matched only once
-
-###### Returns
-
-Newly created instance of `RestMock`.
-
-###### Example of GET request
-
-```typescript
-mocketeer.mockGET(
-    {
-        url: '/api/clients',
-    },
-    {
-        status: 201,
-        body: {
-            clientId: 12345,
-        },
-    }
-);
-```
-
-###### Example of GET request with query passed as an argument
-
-```typescript
-mocketeer.mockGET(
-    {
-        url: '/api/clients',
-        query: {
-            city: 'Bristol',
-            limit: 10,
-        },
-    },
-    {
-        status: 200,
-        body: {
-            clientId: 12345,
-        },
-    }
-);
-```
-
-###### Example of GET request with queryString appended to the url
-
-```typescript
-mocketeer.mockGET(
-    {
-        url: '/api/clients?city=Bristol&limit=10',
-    },
-    {
-        status: 200,
-        body: {
-            clientId: 12345,
-        },
-    }
-);
-```
-
-###### Example of GET request with filter as a string with query
-
-```typescript
-mocketeer.mockGET('/api/clients?city=Bristol&limit=10', {
+// Match by query parameters passed in URL
+mocketeer.mock('/api/clients?city=Bristol&limit=10', {
     status: 200,
     body: {
         clientId: 12345,
@@ -291,12 +182,15 @@ mocketeer.mockGET('/api/clients?city=Bristol&limit=10', {
 });
 ```
 
-###### Example of GET request with id as path parameter
-
 ```typescript
+// Match by query parameters passed in query object
 mocketeer.mockGET(
     {
-        url: '/api/client/:id',
+        url: '/api/clients',
+        query: {
+            city: 'Bristol',
+            limit: 10,
+        },
     },
     {
         status: 200,
@@ -309,7 +203,7 @@ mocketeer.mockGET(
 
 ---
 
-### RestMock
+### Mock
 
 #### getRequest(index?: number): Promise\<MatchedRequest | undefined\>
 

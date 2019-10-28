@@ -752,7 +752,7 @@ describe('Mocketeer integration', () => {
         ).resolves.toEqual(404);
     });
 
-    test('can mock redirect requests', async () => {
+    test('mock redirect requests', async () => {
         await mocketeer.mock('/redirect', {
             status: 302,
             headers: {
@@ -769,7 +769,36 @@ describe('Mocketeer integration', () => {
         await expect(page.title()).resolves.toEqual('page1');
     });
 
-    test('can mock request to assets', async () => {
+    test('mock request with string in response (instead of JSON)', async () => {
+        await mocketeer.mock('/resource', {
+            status: 200,
+            body: 'testBody',
+        });
+        const responseBody = await page.evaluate(() =>
+            fetch('/resource').then(res => res.text())
+        );
+        expect(responseBody).toEqual('testBody');
+    });
+
+    test('allow to provide content-type manually', async () => {
+        await mocketeer.mock('/resource', {
+            status: 200,
+            headers: {
+                'content-type': 'text/html',
+            },
+            body: '<div>test</div>',
+        });
+        const contentType = await page.evaluate(() =>
+            fetch('/resource').then(res => res.headers.get('content-type'))
+        );
+        const body = await page.evaluate(() =>
+            fetch('/resource').then(res => res.text())
+        );
+        expect(contentType).toEqual('text/html');
+        expect(body).toEqual('<div>test</div>');
+    });
+
+    test('mock request to assets', async () => {
         mocketeer.mock('/script.js', {
             headers: {
                 'Content-Type': 'text/javascript; charset=UTF-8',
@@ -781,5 +810,45 @@ describe('Mocketeer integration', () => {
         await expect(
             page.evaluate(() => window['mockLoaded'])
         ).resolves.toEqual(true);
+    });
+
+    test('mocked response as a function', async () => {
+        await mocketeer.mock('/resource', () => ({
+            status: 199 + 1,
+        }));
+        const status = await page.evaluate(() =>
+            fetch('/resource').then(res => res.status)
+        );
+        expect(status).toEqual(200);
+    });
+
+    test('mocked response in function of request data', async () => {
+        await mocketeer.mock('/resource', request => {
+            return {
+                status: 200,
+                body: {
+                    query: request.query,
+                    url: request.url,
+                    rawBody: request.rawBody,
+                    method: request.method,
+                },
+            };
+        });
+
+        const responseBody = await page.evaluate(() =>
+            fetch('/resource?param=testParam', {
+                method: 'POST',
+                body: 'testBody',
+            }).then(res => res.json())
+        );
+
+        expect(responseBody).toEqual({
+            query: {
+                param: 'testParam',
+            },
+            url: 'http://localhost:9000/resource?param=testParam',
+            method: 'POST',
+            rawBody: 'testBody',
+        });
     });
 });

@@ -141,9 +141,7 @@ export class Mocketeer {
                             response.body
                         }`
                     );
-                    return await request.respond({
-                        ...response,
-                    });
+                    return await request.respond(response);
                 } catch (e) {
                     console.error(
                         `Failed to reply with mocked response for ${printRequest(
@@ -173,6 +171,7 @@ export class Mocketeer {
         try {
             return await request.continue();
         } catch (e) {
+            console.error(e);
             // Request could be already handled so ignore this error
             return;
         }

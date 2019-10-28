@@ -21,7 +21,11 @@ export interface ParsedFilterRequest {
     pathRegex: RegExp | undefined;
 }
 
-export interface MockedResponse {
+export type MockedResponse = MockedResponseFunction | MockedResponseObject;
+
+type MockedResponseFunction = (req: ReceivedRequest) => MockedResponseObject;
+
+export interface MockedResponseObject {
     status: number;
     headers?: Record<string, string>;
     body?: any;
