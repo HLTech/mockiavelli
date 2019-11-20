@@ -11,7 +11,13 @@ import {
     MockedResponseObject,
     RequestMatcherObject,
 } from './types';
-import { waitFor, TimeoutError, nth, arePathsDifferent } from './utils';
+import {
+    waitFor,
+    TimeoutError,
+    nth,
+    arePathsDifferent,
+    getCorsHeaders,
+} from './utils';
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
 import { stringify } from 'querystring';
@@ -107,9 +113,24 @@ export class Mock implements IMock {
         const response =
             typeof this.response === 'function'
                 ? this.response(request)
-                : { ...this.response };
+                : this.response;
 
-        return this.applyResponseDefaults(response);
+        const status = response.status || 200;
+
+        // Set default value of Content-Type header
+        const headers = {
+            ['content-type']: `'application/json';charset=UTF-8`,
+            ...getCorsHeaders(request),
+            ...response.headers,
+        };
+
+        // Serialize JSON response
+        const body =
+            typeof response.body !== 'string'
+                ? JSON.stringify(response.body)
+                : response.body;
+
+        return { status, headers, body };
     }
 
     private isMatchingRequest(
@@ -153,23 +174,6 @@ export class Mock implements IMock {
         this.debug('=', `matched mock`);
 
         return true;
-    }
-
-    private applyResponseDefaults(response: MockedResponseObject) {
-        let { status = 200, headers = {}, body } = response;
-
-        // Set default value of Content-Type header
-        headers = {
-            ['content-type']: `'application/json';charset=UTF-8`,
-            ...headers,
-        };
-
-        // Serialize JSON response
-        if (typeof body !== 'string') {
-            body = JSON.stringify(body);
-        }
-
-        return { status, headers, body };
     }
 
     private createParsedFilterRequest(

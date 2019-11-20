@@ -104,3 +104,11 @@ export function createRequestFilter(
         };
     }
 }
+
+export function getCorsHeaders(request: ReceivedRequest) {
+    return {
+        'Access-Control-Allow-Origin': request.headers.origin,
+        'Access-Control-Allow-Methods': request.method,
+        'Access-Control-Allow-Credentials': 'true',
+    };
+}

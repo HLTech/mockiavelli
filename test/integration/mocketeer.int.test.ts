@@ -851,4 +851,19 @@ describe('Mocketeer integration', () => {
             rawBody: 'testBody',
         });
     });
+
+    test('mock cross-origin requests', async () => {
+        await mocketeer.mockPOST('http://example.com/resource', {
+            status: 200,
+            body: '',
+        });
+
+        const responseStatus = await page.evaluate(() =>
+            fetch('http://example.com/resource', {
+                method: 'POST',
+            }).then(res => res.status)
+        );
+
+        expect(responseStatus).toEqual(200);
+    });
 });

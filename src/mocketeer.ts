@@ -14,6 +14,7 @@ import {
     printRequest,
     requestToPlainObject,
     createRequestFilter,
+    getCorsHeaders,
 } from './utils';
 
 const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
@@ -128,6 +129,14 @@ export class Mocketeer {
         // TODO find a better alternative for url.parse
         const { protocol, host } = parse(originFrameUrl);
         const origin = `${protocol}//${host}`;
+
+        // Handle preflight requests
+        if (requestData.method === 'OPTIONS') {
+            return await request.respond({
+                status: 204,
+                headers: getCorsHeaders(requestData),
+            });
+        }
 
         for (const mock of this.mocks) {
             const response = mock.getResponseForRequest(requestData, origin);
