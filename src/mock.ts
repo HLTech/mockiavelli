@@ -17,6 +17,7 @@ import {
     nth,
     arePathsDifferent,
     getCorsHeaders,
+    sanitizeHeaders,
 } from './utils';
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
@@ -118,11 +119,11 @@ export class Mock implements IMock {
         const status = response.status || 200;
 
         // Set default value of Content-Type header
-        const headers = {
+        const headers = sanitizeHeaders({
             ['content-type']: `'application/json';charset=UTF-8`,
-            ...getCorsHeaders(request),
+            ...getCorsHeaders(request, pageOrigin),
             ...response.headers,
-        };
+        });
 
         // Serialize JSON response
         const body =

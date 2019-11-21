@@ -15,6 +15,7 @@ import {
     requestToPlainObject,
     createRequestFilter,
     getCorsHeaders,
+    sanitizeHeaders,
 } from './utils';
 
 const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
@@ -134,7 +135,7 @@ export class Mocketeer {
         if (requestData.method === 'OPTIONS') {
             return await request.respond({
                 status: 204,
-                headers: getCorsHeaders(requestData),
+                headers: sanitizeHeaders(getCorsHeaders(requestData, origin)),
             });
         }
 

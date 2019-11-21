@@ -1,5 +1,5 @@
 import { parse } from 'url';
-import { Request } from 'puppeteer';
+import { Request, Headers } from 'puppeteer';
 import { ReceivedRequest, RequestMatcher, RequestMatcherObject } from './types';
 
 export function requestToPlainObject(request: Request): ReceivedRequest {
@@ -105,10 +105,28 @@ export function createRequestFilter(
     }
 }
 
-export function getCorsHeaders(request: ReceivedRequest) {
-    return {
-        'Access-Control-Allow-Origin': request.headers.origin,
-        'Access-Control-Allow-Methods': request.method,
+export function getCorsHeaders(request: ReceivedRequest, origin: string) {
+    const headers: Headers = {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods':
+            request.headers['access-control-request-method'] || request.method,
         'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Headers':
+            request.headers['access-control-request-headers'],
     };
+
+    return headers;
+}
+
+/**
+ * Sanitize headers object from empty or null values
+ * because they make request hang indefinitely in puppeteer
+ */
+export function sanitizeHeaders(headers: Headers): Headers {
+    return Object.keys(headers).reduce<Headers>((acc, key) => {
+        if (Boolean(headers[key])) {
+            acc[key] = headers[key];
+        }
+        return acc;
+    }, {});
 }
