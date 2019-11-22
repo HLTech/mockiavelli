@@ -769,6 +769,22 @@ describe('Mocketeer integration', () => {
         await expect(page.title()).resolves.toEqual('page1');
     });
 
+    test('mock cross-origin redirect requests', async () => {
+        await mocketeer.mock('http://example.com/redirect', {
+            status: 302,
+            headers: {
+                Location: `http://localhost:${PORT}/page1.html`,
+            },
+        });
+
+        await page.evaluate(() => {
+            window.location.assign('http://example.com/redirect');
+        });
+
+        await page.waitForNavigation();
+        await expect(page.title()).resolves.toEqual('page1');
+    });
+
     test('mock request with string in response (instead of JSON)', async () => {
         await mocketeer.mock('/resource', {
             status: 200,
