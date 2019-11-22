@@ -108,9 +108,9 @@ export function createRequestFilter(
 export function getCorsHeaders(request: ReceivedRequest, origin: string) {
     const headers: Headers = {
         'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods':
-            request.headers['access-control-request-method'] || request.method,
         'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods':
+            request.headers['access-control-request-method'],
         'Access-Control-Allow-Headers':
             request.headers['access-control-request-headers'],
     };
