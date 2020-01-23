@@ -4,18 +4,17 @@ import {
     addMockByPriority,
     createRequestFilter,
 } from '../../src/utils';
-import { createMockRequest, createRestMock } from './fixtures/request';
+import { createRestMock, Request } from './fixtures/request';
 
 describe('requestToPlainObject', () => {
     test('returns serialized request object', () => {
-        const req = createMockRequest();
-        req.postData.mockReturnValue(JSON.stringify({ foo: 'bar' }));
-        req.url.mockReturnValue(
-            'http://example.com:8000/some/path?foo=bar#baz'
-        );
-        req.method.mockReturnValue('GET');
-        req.headers.mockReturnValue({ header: 'header' });
-        req.resourceType.mockReturnValue('xhr');
+        const req = Request.create({
+            postData: JSON.stringify({ foo: 'bar' }),
+            url: 'http://example.com:8000/some/path?foo=bar#baz',
+            method: 'GET',
+            headers: { header: 'header' },
+            resourceType: 'xhr',
+        });
         expect(requestToPlainObject(req)).toMatchObject({
             headers: {
                 header: 'header',
@@ -30,9 +29,9 @@ describe('requestToPlainObject', () => {
     });
 
     test('returns only rawBody without body if postData() returns non-JSON string', () => {
-        const req = createMockRequest();
-        req.postData.mockReturnValue('somestring');
-
+        const req = Request.create({
+            postData: 'somestring',
+        });
         expect(requestToPlainObject(req)).toMatchObject({
             body: undefined,
             rawBody: 'somestring',
@@ -40,9 +39,9 @@ describe('requestToPlainObject', () => {
     });
 
     test('returns correct path and url when origin contains trailing slash', () => {
-        const req = createMockRequest();
-        req.url.mockReturnValue('http://origin:8000/some/path');
-
+        const req = Request.create({
+            url: 'http://origin:8000/some/path',
+        });
         expect(requestToPlainObject(req)).toMatchObject({
             url: 'http://origin:8000/some/path',
             path: '/some/path',

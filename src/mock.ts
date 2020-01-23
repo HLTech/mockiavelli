@@ -1,6 +1,5 @@
 import dbg from 'debug';
 import {
-    IMock,
     MatchedRequest,
     MockedResponse,
     MockOptions,
@@ -18,11 +17,14 @@ import {
     arePathsDifferent,
     getCorsHeaders,
     sanitizeHeaders,
+    requestToPlainObject,
+    getRequestOrigin,
 } from './utils';
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
 import { stringify } from 'querystring';
 import pathToRegexp, { Key } from 'path-to-regexp';
+import { Request } from 'puppeteer';
 
 const debug = dbg('mocketeer:rest');
 
@@ -30,7 +32,7 @@ const GET_REQUEST_TIMEOUT = 100;
 
 let debugId = 1;
 
-export class Mock implements IMock {
+export class Mock {
     private filter: ParsedFilterRequest;
     private response: MockedResponse;
     private requests: Array<MatchedRequest> = [];
@@ -97,23 +99,28 @@ export class Mock implements IMock {
     }
 
     public getResponseForRequest(
-        request: ReceivedRequest,
-        pageOrigin: string
+        request: Request
     ): MockedResponseObject | null {
         if (this.options.once && this.requests.length > 0) {
             this.debug('once', 'Request already matched');
             return null;
         }
 
-        if (!this.isMatchingRequest(request, pageOrigin)) {
+        const serializedRequest = requestToPlainObject(request);
+        const pageOrigin = getRequestOrigin(request);
+
+        if (!this.isMatchingRequest(serializedRequest, pageOrigin)) {
             return null;
         }
 
-        this.requests.push({ ...request, params: this.getParams(request) });
+        this.requests.push({
+            ...serializedRequest,
+            params: this.getParams(serializedRequest),
+        });
 
         const response =
             typeof this.response === 'function'
-                ? this.response(request)
+                ? this.response(serializedRequest)
                 : this.response;
 
         const status = response.status || 200;
@@ -121,7 +128,7 @@ export class Mock implements IMock {
         // Set default value of Content-Type header
         const headers = sanitizeHeaders({
             ['content-type']: `'application/json';charset=UTF-8`,
-            ...getCorsHeaders(request, pageOrigin),
+            ...getCorsHeaders(request),
             ...response.headers,
         });
 

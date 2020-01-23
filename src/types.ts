@@ -54,15 +54,6 @@ export interface MockOptions {
     once: boolean;
 }
 
-export interface IMock {
-    getRequest(n: number): Promise<MatchedRequest | undefined>;
-    getResponseForRequest(
-        request: MatchedRequest,
-        origin: string
-    ): MockedResponse | null;
-    options: MockOptions;
-}
-
 export enum REST_METHOD {
     GET = 'GET',
     POST = 'POST',

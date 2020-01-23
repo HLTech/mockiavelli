@@ -1,21 +1,13 @@
-import { ReceivedRequest } from '../../src';
-import { createRestMock } from './fixtures/request';
+import { createRestMock, Request } from './fixtures/request';
 
 test('.getResponseForRequest matches GET request', () => {
     const mock = createRestMock();
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo',
-                type: 'xhr',
-                headers: {},
-                query: {},
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).not.toBeNull();
 });
@@ -30,20 +22,10 @@ test('.getResponseForRequest matches GET request when query params passed as an 
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url:
-                    'http://example/foo?example=firstExample&secondExample=SecondExampleParam',
-                type: 'xhr',
-                headers: {},
-                query: {
-                    example: 'firstExample',
-                    secondExample: 'secondExampleParam',
-                },
-                hostname: 'http://example',
-            },
-            'http://example'
+                    'http://example/foo?example=firstExample&secondExample=secondExampleParam',
+            })
         )
     ).not.toBeNull();
 });
@@ -57,18 +39,9 @@ test('.getResponseForRequest matches GET request when query params are numbers',
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo?exampleNum=111',
-                type: 'xhr',
-                headers: {},
-                query: {
-                    exampleNum: '111',
-                },
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).not.toBeNull();
 });
@@ -82,18 +55,9 @@ test('.getResponseForRequest matches GET request when query params are arrays', 
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo?exampleArray=122&exampleArray=3223',
-                type: 'xhr',
-                headers: {},
-                query: {
-                    exampleArray: ['122', '3223'],
-                },
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).not.toBeNull();
 });
@@ -108,18 +72,9 @@ test('.getResponseForRequest does not match GET request when some query params a
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo?example=exampleParam',
-                type: 'xhr',
-                headers: {},
-                query: {
-                    example: 'exampleParam',
-                },
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).toBeNull();
 });
@@ -133,18 +88,9 @@ test('.getResponseForRequest does not match GET request when query params values
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo?example=exampleParam',
-                type: 'xhr',
-                headers: {},
-                query: {
-                    example: 'exampleParam',
-                },
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).toBeNull();
 });
@@ -156,18 +102,9 @@ test('.getResponseForRequest matches GET request with query params passed in the
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo?example=exampleParam',
-                type: 'xhr',
-                headers: {},
-                query: {
-                    example: 'exampleParam',
-                },
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).not.toBeNull();
 });
@@ -179,16 +116,9 @@ test('.getResponseForRequest matches GET request with specified origin', () => {
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo',
-                type: 'xhr',
-                headers: {},
-                query: {},
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).not.toBeNull();
 });
@@ -200,16 +130,10 @@ test('.getResponseForRequest does not match GET request with specified origin', 
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://fooExample/foo',
-                type: 'xhr',
-                headers: {},
-                query: {},
-                hostname: 'http://fooExample',
-            },
-            'http://localhost'
+                origin: 'http://localhost',
+            })
         )
     ).toBeNull();
 });
@@ -219,16 +143,10 @@ test('.getResponseForRequest does not match GET request when pageOrigin is diffe
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://fooExample/foo',
-                type: 'xhr',
-                headers: {},
-                query: {},
-                hostname: 'http://fooExample',
-            },
-            'http://localhost'
+                origin: 'http://localhost',
+            })
         )
     ).toBeNull();
 });
@@ -238,88 +156,49 @@ test('.getResponseForRequest matches GET request first time when once option is 
 
     expect(
         mock.getResponseForRequest(
-            {
-                path: '/foo',
-                method: 'GET',
+            Request.create({
                 url: 'http://example/foo',
-                type: 'xhr',
-                headers: {},
-                query: {},
-                hostname: 'http://example',
-            },
-            'http://example'
+            })
         )
     ).not.toBeNull();
 });
 
 test('.getResponseForRequest does not match second GET request when once option is set to true', () => {
     const mock = createRestMock(undefined, { once: true });
-    const exampleRequest: ReceivedRequest = {
-        path: '/foo',
-        method: 'GET',
+    const exampleRequest = Request.create({
         url: 'http://example/foo',
-        type: 'xhr',
-        headers: {},
-        query: {},
-        hostname: 'http://example',
-    };
-    mock.getResponseForRequest(exampleRequest, 'http://example');
+    });
+    mock.getResponseForRequest(exampleRequest);
 
-    expect(
-        mock.getResponseForRequest(exampleRequest, 'http://example')
-    ).toBeNull();
+    expect(mock.getResponseForRequest(exampleRequest)).toBeNull();
 });
 
 test('.getResponseForRequest matches GET request with path variable', () => {
     const mock = createRestMock({ url: '/foo/:id' });
-    const exampleRequest: ReceivedRequest = {
-        path: '/foo/param',
-        method: 'GET',
+    const exampleRequest = Request.create({
         url: 'http://example/foo/param',
-        type: 'xhr',
-        headers: {},
-        query: {},
-        hostname: 'http://example',
-    };
-    mock.getResponseForRequest(exampleRequest, 'http://example');
+    });
+    mock.getResponseForRequest(exampleRequest);
 
-    expect(
-        mock.getResponseForRequest(exampleRequest, 'http://example')
-    ).not.toBeNull();
+    expect(mock.getResponseForRequest(exampleRequest)).not.toBeNull();
 });
 
 test('.getResponseForRequest matches GET request with multiple path variables', () => {
     const mock = createRestMock({ url: '/foo/:id/:resource' });
-    const exampleRequest: ReceivedRequest = {
-        path: '/foo/param/second',
-        method: 'GET',
+    const exampleRequest = Request.create({
         url: 'http://example/foo/param/second',
-        type: 'xhr',
-        headers: {},
-        query: {},
-        hostname: 'http://example',
-    };
-    mock.getResponseForRequest(exampleRequest, 'http://example');
+    });
+    mock.getResponseForRequest(exampleRequest);
 
-    expect(
-        mock.getResponseForRequest(exampleRequest, 'http://example')
-    ).not.toBeNull();
+    expect(mock.getResponseForRequest(exampleRequest)).not.toBeNull();
 });
 
 test('.getResponseForRequest does not match GET request when path variables are set and not present in request', () => {
     const mock = createRestMock({ url: '/foo/:id' });
-    const exampleRequest: ReceivedRequest = {
-        path: '/foo',
-        method: 'GET',
+    const exampleRequest = Request.create({
         url: 'http://example/foo',
-        type: 'xhr',
-        headers: {},
-        query: {},
-        hostname: 'http://example',
-    };
-    mock.getResponseForRequest(exampleRequest, 'http://example');
+    });
+    mock.getResponseForRequest(exampleRequest);
 
-    expect(
-        mock.getResponseForRequest(exampleRequest, 'http://example')
-    ).toBeNull();
+    expect(mock.getResponseForRequest(exampleRequest)).toBeNull();
 });

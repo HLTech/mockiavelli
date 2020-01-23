@@ -1,4 +1,3 @@
-import { parse } from 'url';
 import { Page, Request, ResourceType } from 'puppeteer';
 import dbg from 'debug';
 import { Mock } from './mock';
@@ -12,7 +11,6 @@ import {
 import {
     addMockByPriority,
     printRequest,
-    requestToPlainObject,
     createRequestFilter,
     getCorsHeaders,
     sanitizeHeaders,
@@ -114,33 +112,23 @@ export class Mocketeer {
 
     private async onRequest(request: Request): Promise<void> {
         // Serialize request
-        const requestData = requestToPlainObject(request);
         const should404 =
             interceptedTypes.indexOf(request.resourceType()) !== -1;
 
         debug(
-            `> req: type=${requestData.type} method=${requestData.method} url=${
-                requestData.url
-            } `
+            `> req: type=${request.resourceType()} method=${request.method()} url=${request.url()} `
         );
 
-        // Obtain request url from originating frame url
-        const originFrame = request.frame();
-        const originFrameUrl = originFrame ? await originFrame.url() : '';
-        // TODO find a better alternative for url.parse
-        const { protocol, host } = parse(originFrameUrl);
-        const origin = `${protocol}//${host}`;
-
         // Handle preflight requests
-        if (requestData.method === 'OPTIONS') {
+        if (request.method() === 'OPTIONS') {
             return await request.respond({
                 status: 204,
-                headers: sanitizeHeaders(getCorsHeaders(requestData, origin)),
+                headers: sanitizeHeaders(getCorsHeaders(request)),
             });
         }
 
         for (const mock of this.mocks) {
-            const response = mock.getResponseForRequest(requestData, origin);
+            const response = mock.getResponseForRequest(request);
 
             if (response) {
                 try {

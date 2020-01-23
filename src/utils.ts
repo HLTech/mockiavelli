@@ -105,17 +105,31 @@ export function createRequestFilter(
     }
 }
 
-export function getCorsHeaders(request: ReceivedRequest, origin: string) {
+export function getCorsHeaders(request: Request) {
+    const requestHeaders = request.headers();
+    const origin = getRequestOrigin(request);
     const headers: Headers = {
         'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Allow-Methods':
-            request.headers['access-control-request-method'],
+            requestHeaders['access-control-request-method'],
         'Access-Control-Allow-Headers':
-            request.headers['access-control-request-headers'],
+            requestHeaders['access-control-request-headers'],
     };
 
     return headers;
+}
+
+/**
+ * Obtain request origin url from originating frame url
+ * @param request
+ */
+export function getRequestOrigin(request: Request) {
+    const originFrame = request.frame();
+    const originFrameUrl = originFrame ? originFrame.url() : '';
+    // TODO find a better alternative for url.parse
+    const { protocol, host } = parse(originFrameUrl);
+    return `${protocol}//${host}`;
 }
 
 /**

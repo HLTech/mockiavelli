@@ -1,6 +1,6 @@
 import { Mocketeer, RequestMatcherShort, REST_METHOD, Mock } from '../../src';
 import { createMockPage } from './fixtures/page';
-import { createMockRequest } from './fixtures/request';
+import { Request } from './fixtures/request';
 jest.mock('../../src/mock');
 
 describe('Mocketeer', () => {
@@ -45,8 +45,7 @@ describe('Mocketeer', () => {
 
         test('calls continue request of unsupported resource type ', () => {
             const callback = page.on.mock.calls[0][1];
-            const request = createMockRequest();
-            request.resourceType.mockReturnValue('image');
+            const request = Request.create({ resourceType: 'image' });
             callback(request);
             expect(request.continue).toHaveBeenCalled();
         });
