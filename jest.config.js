@@ -33,8 +33,9 @@ module.exports = {
             preset: 'ts-jest',
             testEnvironment: 'node',
             roots: ['test/integration'],
-            globalSetup: './test/integration/utils/global-setup.ts',
-            globalTeardown: './test/integration/utils/global-teardown.ts',
+            globalSetup: './test/integration/test-helpers/global-setup.ts',
+            globalTeardown:
+                './test/integration/test-helpers/global-teardown.ts',
             globals: {
                 'ts-jest': {
                     tsConfig: 'test/integration/tsconfig.json',

@@ -1,16 +1,17 @@
 import { Mocketeer } from '../../src';
 import { Browser, launch, Page } from 'puppeteer';
 import {
-    response200Ok,
-    requestGetFoo,
-    requestPostFoo,
-    response200Empty,
-    requestGetFooWithQuery,
+    requestDeleteFoo,
     requestFoo,
     requestFooWithQuery,
+    requestGetFoo,
+    requestGetFooWithQuery,
+    requestPostFoo,
     requestPutFoo,
-    requestDeleteFoo,
+    response200Empty,
+    response200Ok,
 } from './fixture/mock-fixtures';
+import { makeRequestFactory } from './test-helpers/make-request-factory';
 
 const PORT = 9000;
 
@@ -18,6 +19,7 @@ describe('Mocketeer integration', () => {
     let browser: Browser;
     let page: Page;
     let mocketeer: Mocketeer;
+    let makeRequest: ReturnType<typeof makeRequestFactory>;
 
     beforeAll(async () => {
         browser = await launch({
@@ -38,6 +40,8 @@ describe('Mocketeer integration', () => {
 
         // Instantiate Mocketeer
         mocketeer = await Mocketeer.setup(page);
+
+        makeRequest = makeRequestFactory(page);
     });
 
     afterEach(async () => {
@@ -47,77 +51,33 @@ describe('Mocketeer integration', () => {
     describe('mockREST', () => {
         it('mocks fetch GET request', async () => {
             await mocketeer.mock(requestGetFoo, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo')
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('GET', '/foo');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch GET request with query', async () => {
             await mocketeer.mock(requestGetFooWithQuery, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam')
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('GET', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch POST request ', async () => {
             await mocketeer.mock(requestPostFoo, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo', { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('POST', '/foo');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch PUT request ', async () => {
             await mocketeer.mock(requestPutFoo, response200Ok);
 
-            await page.evaluate(() => {
-                fetch('/foo', { method: 'PUT' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('PUT', '/foo');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch DELETE request ', async () => {
             await mocketeer.mock(requestDeleteFoo, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo', { method: 'DELETE' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('DELETE', '/foo');
+            expect(result.status).toEqual(200);
         });
     });
 
@@ -125,11 +85,7 @@ describe('Mocketeer integration', () => {
         it('mocks fetch GET request', async () => {
             const mock = await mocketeer.mockGET(requestFoo, response200Empty);
 
-            await page.evaluate(() => {
-                fetch('/foo', {
-                    method: 'GET',
-                });
-            });
+            await makeRequest('GET', '/foo');
 
             await expect(mock.getRequest()).resolves.toMatchObject({
                 method: 'GET',
@@ -138,43 +94,19 @@ describe('Mocketeer integration', () => {
 
         it('mocks fetch GET request using filter as string with query', async () => {
             await mocketeer.mockGET('/foo?param=fooParam', response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam')
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('GET', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch GET request using filter object and query object', async () => {
             await mocketeer.mockGET(requestFooWithQuery, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam')
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('GET', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch POST request', async () => {
             const mock = await mocketeer.mockPOST(requestFoo, response200Empty);
-
-            await page.evaluate(() => {
-                fetch('/foo', {
-                    method: 'POST',
-                });
-            });
-
+            await makeRequest('POST', '/foo');
             await expect(mock.getRequest()).resolves.toMatchObject({
                 method: 'POST',
             });
@@ -182,43 +114,19 @@ describe('Mocketeer integration', () => {
 
         it('mocks fetch POST request using filter as string with query', async () => {
             await mocketeer.mockPOST('/foo?param=fooParam', response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam', { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('POST', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch POST request using filter object and query object', async () => {
             await mocketeer.mockPOST(requestFooWithQuery, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam', { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('POST', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch PUT request', async () => {
             const mock = await mocketeer.mockPUT(requestFoo, response200Empty);
-
-            await page.evaluate(() => {
-                fetch('/foo', {
-                    method: 'PUT',
-                });
-            });
-
+            await makeRequest('PUT', '/foo');
             await expect(mock.getRequest()).resolves.toMatchObject({
                 method: 'PUT',
             });
@@ -226,32 +134,14 @@ describe('Mocketeer integration', () => {
 
         it('mocks fetch PUT request using filter as string with query', async () => {
             await mocketeer.mockPUT('/foo?param=fooParam', response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam', { method: 'PUT' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('PUT', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch PUT request using filter object and query object', async () => {
             await mocketeer.mockPUT(requestFooWithQuery, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam', { method: 'PUT' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('PUT', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch DELETE request', async () => {
@@ -259,13 +149,7 @@ describe('Mocketeer integration', () => {
                 requestFoo,
                 response200Empty
             );
-
-            await page.evaluate(() => {
-                fetch('/foo', {
-                    method: 'DELETE',
-                });
-            });
-
+            await makeRequest('DELETE', '/foo');
             await expect(mock.getRequest()).resolves.toMatchObject({
                 method: 'DELETE',
             });
@@ -273,47 +157,23 @@ describe('Mocketeer integration', () => {
 
         it('mocks fetch DELETE request using filter as string with query', async () => {
             await mocketeer.mockDELETE('/foo?param=fooParam', response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam', { method: 'DELETE' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('DELETE', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
 
         it('mocks fetch DELETE request using filter object and query object', async () => {
             await mocketeer.mockDELETE(requestFooWithQuery, response200Ok);
-
-            await page.evaluate(() => {
-                fetch('/foo?param=fooParam', { method: 'DELETE' })
-                    .then(res => res.json())
-                    .then(data => (document.body.innerHTML = data.payload));
-            });
-
-            await page.waitFor(100);
-            expect(await page.evaluate(() => document.body.innerHTML)).toEqual(
-                response200Ok.body.payload
-            );
+            const result = await makeRequest('DELETE', '/foo?param=fooParam');
+            expect(result.status).toEqual(200);
         });
     });
 
     it('mocks multiple requests', async () => {
         await mocketeer.mock(requestGetFoo, response200Empty);
-
-        await page.evaluate(() => {
-            fetch('/foo').then(() => (document.body.innerHTML += '1'));
-            fetch('/foo').then(() => (document.body.innerHTML += '2'));
-        });
-
-        await page.waitFor(100);
-        expect(
-            await page.evaluate(() => document.body.innerHTML.trim())
-        ).toEqual('12');
+        const res1 = await makeRequest('GET', '/foo');
+        const res2 = await makeRequest('GET', '/foo');
+        expect(res1.status).toEqual(200);
+        expect(res2.status).toEqual(200);
     });
 
     it('mocks response with status 500', async () => {
@@ -321,41 +181,25 @@ describe('Mocketeer integration', () => {
             status: 500,
             body: {},
         });
-
-        await page.evaluate(() => {
-            fetch('/foo').then(response => {
-                document.body.innerHTML = String(response.status);
-            });
-        });
-
-        await page.waitFor(100);
-        expect(
-            await page.evaluate(() => document.body.innerHTML.trim())
-        ).toEqual('500');
+        const res = await makeRequest('GET', '/foo');
+        expect(res.status).toEqual(500);
     });
 
     it('records intercepted request', async () => {
         const mock = await mocketeer.mock(requestPostFoo, response200Empty);
-
-        await page.evaluate(() => {
-            fetch('/foo', {
-                method: 'POST',
-                body: JSON.stringify({ payload: 'ok' }),
-                headers: {
-                    'X-Header': 'FOO',
-                },
-            });
-        });
+        const headers = {
+            'x-header': 'FOO',
+        };
+        const body = JSON.stringify({ payload: 'ok' });
+        await makeRequest('POST', '/foo', headers, body);
 
         await expect(mock.getRequest()).resolves.toMatchObject({
             method: 'POST',
             path: '/foo',
-            body: { payload: 'ok' },
-            rawBody: JSON.stringify({ payload: 'ok' }),
+            body: JSON.parse(body),
+            rawBody: body,
             url: `http://localhost:${PORT}/foo`,
-            headers: {
-                'x-header': 'FOO',
-            },
+            headers: headers,
         });
     });
 
@@ -371,9 +215,7 @@ describe('Mocketeer integration', () => {
             ),
         });
 
-        await page.evaluate(() => {
-            return fetch('/some_endpoint');
-        });
+        await makeRequest('GET', '/some_endpoint');
 
         await expect(mock.getRequest(0)).resolves.toEqual(expect.anything());
         await expect(mock.getRequest(1)).rejects.toMatchObject({
@@ -406,11 +248,7 @@ describe('Mocketeer integration', () => {
             }
         );
 
-        await page.evaluate(() => {
-            fetch('/foo');
-        });
-
-        await page.waitFor(100);
+        await makeRequest('GET', '/foo');
 
         await expect(mock.getRequest()).rejects.toEqual(expect.anything());
         await expect(mockWithPriority.getRequest()).resolves.toEqual(
@@ -424,15 +262,7 @@ describe('Mocketeer integration', () => {
             body: { id: 1 },
         });
 
-        await page.evaluate(() => {
-            fetch('/foo')
-                .then(res => res.json())
-                .then(data => (document.body.innerHTML = data.id));
-        });
-
-        await page.waitForFunction(
-            () => document.body.innerHTML.trim() === '1'
-        );
+        await makeRequest('GET', '/foo');
 
         mocketeer.removeMock(mock);
 
@@ -441,15 +271,9 @@ describe('Mocketeer integration', () => {
             body: { id: 2 },
         });
 
-        await page.evaluate(() => {
-            fetch('/foo')
-                .then(res => res.json())
-                .then(data => (document.body.innerHTML = data.id));
-        });
+        const result = await makeRequest('GET', '/foo');
 
-        await page.waitForFunction(
-            () => document.body.innerHTML.trim() === '2'
-        );
+        expect(result.body).toEqual({ id: 2 });
     });
 
     it('can inspect requests that are invoke asynchronously', async () => {
@@ -468,18 +292,14 @@ describe('Mocketeer integration', () => {
     });
 
     describe('ordering', () => {
-        const makeRequest = () =>
-            page.evaluate(() => fetch('/foo').then(res => res.status));
-
         it('matches only once request with once set to true', async () => {
             spyOn(console, 'error');
             await mocketeer.mock(requestGetFoo, response200Ok, {
                 once: true,
             });
 
-            await expect(makeRequest()).resolves.toBe(200);
-
-            await expect(makeRequest()).resolves.toBe(404);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(404);
             expect(console.error).toHaveBeenCalled();
         });
 
@@ -494,9 +314,9 @@ describe('Mocketeer integration', () => {
                 }
             );
 
-            await expect(makeRequest()).resolves.toBe(201);
-            await expect(makeRequest()).resolves.toBe(200);
-            await expect(makeRequest()).resolves.toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(201);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
         });
 
         it('matches only once every request in order with once set to true', async () => {
@@ -514,23 +334,23 @@ describe('Mocketeer integration', () => {
                 }
             );
 
-            await expect(makeRequest()).resolves.toBe(201);
-            await expect(makeRequest()).resolves.toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(201);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
         });
 
         it('matches newest request when added mock with same filter', async () => {
             await mocketeer.mock(requestGetFoo, { status: 200, body: {} });
-            await expect(makeRequest()).resolves.toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
 
             await mocketeer.mock(requestGetFoo, { status: 201, body: {} });
-            await expect(makeRequest()).resolves.toBe(201);
+            expect((await makeRequest('GET', '/foo')).status).toBe(201);
         });
 
         it('matches newest request when multiple mocks have same filter', async () => {
             await mocketeer.mock(requestGetFoo, { status: 200, body: {} });
             await mocketeer.mock(requestGetFoo, { status: 201, body: {} });
 
-            await expect(makeRequest()).resolves.toBe(201);
+            expect((await makeRequest('GET', '/foo')).status).toBe(201);
         });
 
         it('matches newest request when added mock with same filter and older mock has once set to true ', async () => {
@@ -539,10 +359,10 @@ describe('Mocketeer integration', () => {
                 { status: 200, body: {} },
                 { once: true }
             );
-            await expect(makeRequest()).resolves.toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
 
             await mocketeer.mock(requestGetFoo, { status: 201, body: {} });
-            await expect(makeRequest()).resolves.toBe(201);
+            expect((await makeRequest('GET', '/foo')).status).toBe(201);
         });
 
         it('matches requests with once set to true in correct order when multiple mocks have same filter', async () => {
@@ -568,9 +388,9 @@ describe('Mocketeer integration', () => {
                 }
             );
 
-            await expect(makeRequest()).resolves.toBe(202);
-            await expect(makeRequest()).resolves.toBe(201);
-            await expect(makeRequest()).resolves.toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(202);
+            expect((await makeRequest('GET', '/foo')).status).toBe(201);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
         });
 
         it('matches request with highest priority when multiple mocks have same filter', async () => {
@@ -588,7 +408,7 @@ describe('Mocketeer integration', () => {
                 { priority: 5 }
             );
 
-            await expect(makeRequest()).resolves.toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
         });
 
         it('matches request in correct order with priority and once set to true when multiple mocks have same filter', async () => {
@@ -628,12 +448,12 @@ describe('Mocketeer integration', () => {
                 { once: true }
             );
 
-            await expect(makeRequest()).resolves.toBe(203);
-            await expect(makeRequest()).resolves.toBe(201);
-            await expect(makeRequest()).resolves.toBe(204);
-            await expect(makeRequest()).resolves.toBe(205);
-            await expect(makeRequest()).resolves.toBe(202);
-            await expect(makeRequest()).resolves.toBe(200);
+            expect((await makeRequest('GET', '/foo')).status).toBe(203);
+            expect((await makeRequest('GET', '/foo')).status).toBe(201);
+            expect((await makeRequest('GET', '/foo')).status).toBe(204);
+            expect((await makeRequest('GET', '/foo')).status).toBe(205);
+            expect((await makeRequest('GET', '/foo')).status).toBe(202);
+            expect((await makeRequest('GET', '/foo')).status).toBe(200);
         });
     });
 
@@ -641,11 +461,7 @@ describe('Mocketeer integration', () => {
         it('mocks fetch GET request with path variable as number', async () => {
             const mock = await mocketeer.mockGET('/foo/:id', response200Empty);
 
-            await page.evaluate(() => {
-                fetch('/foo/123', {
-                    method: 'GET',
-                });
-            });
+            await makeRequest('GET', '/foo/123');
             const request = await mock.getRequest();
 
             await expect(request.params.id).toBe('123');
@@ -654,11 +470,7 @@ describe('Mocketeer integration', () => {
         it('mocks fetch GET request with path variable as string', async () => {
             const mock = await mocketeer.mockGET('/foo/:id', response200Empty);
 
-            await page.evaluate(() => {
-                fetch('/foo/test', {
-                    method: 'GET',
-                });
-            });
+            await makeRequest('GET', '/foo/test');
             const request = await mock.getRequest();
 
             await expect(request.params.id).toBe('test');
@@ -669,12 +481,7 @@ describe('Mocketeer integration', () => {
                 { url: '/foo/:id?param=fooParam', method: 'GET' },
                 response200Empty
             );
-
-            await page.evaluate(() => {
-                fetch('/foo/123?param=fooParam', {
-                    method: 'GET',
-                });
-            });
+            await makeRequest('GET', '/foo/123?param=fooParam');
             const request = await mock.getRequest();
 
             await expect(request.params.id).toBe('123');
@@ -688,12 +495,10 @@ describe('Mocketeer integration', () => {
                 },
                 response200Empty
             );
-
-            await page.evaluate(() => {
-                fetch('https://localhost:3000/foo/123?param=fooParam', {
-                    method: 'GET',
-                });
-            });
+            await makeRequest(
+                'GET',
+                'https://localhost:3000/foo/123?param=fooParam'
+            );
             const request = await mock.getRequest();
 
             await expect(request.params.id).toBe('123');
@@ -704,12 +509,7 @@ describe('Mocketeer integration', () => {
                 { url: '/foo/:id/:name', method: 'GET' },
                 response200Empty
             );
-
-            await page.evaluate(() => {
-                fetch('/foo/123/mike', {
-                    method: 'GET',
-                });
-            });
+            await makeRequest('GET', '/foo/123/mike');
             const request = await mock.getRequest();
 
             await expect(request.params.id).toBe('123');
@@ -732,9 +532,8 @@ describe('Mocketeer integration', () => {
 
     test('respond with 404 for unmocked fetch requests', async () => {
         jest.spyOn(console, 'error').mockImplementation(() => {});
-        await expect(
-            page.evaluate(() => fetch('/unmocked').then(res => res.status))
-        ).resolves.toEqual(404);
+        const response = await makeRequest('GET', '/unmocked');
+        expect(response.status).toEqual(404);
     });
 
     test('respond with 404 for unmocked XHR requests', async () => {
@@ -790,10 +589,8 @@ describe('Mocketeer integration', () => {
             status: 200,
             body: 'testBody',
         });
-        const responseBody = await page.evaluate(() =>
-            fetch('/resource').then(res => res.text())
-        );
-        expect(responseBody).toEqual('testBody');
+        const result = await makeRequest('GET', '/resource');
+        expect(result.body).toEqual('testBody');
     });
 
     test('allow to provide content-type manually', async () => {
@@ -804,14 +601,9 @@ describe('Mocketeer integration', () => {
             },
             body: '<div>test</div>',
         });
-        const contentType = await page.evaluate(() =>
-            fetch('/resource').then(res => res.headers.get('content-type'))
-        );
-        const body = await page.evaluate(() =>
-            fetch('/resource').then(res => res.text())
-        );
-        expect(contentType).toEqual('text/html');
-        expect(body).toEqual('<div>test</div>');
+        const result = await makeRequest('GET', '/resource');
+        expect(result.headers['content-type']).toEqual('text/html');
+        expect(result.body).toEqual('<div>test</div>');
     });
 
     test('mock request to assets', async () => {
@@ -832,9 +624,7 @@ describe('Mocketeer integration', () => {
         await mocketeer.mock('/resource', () => ({
             status: 199 + 1,
         }));
-        const status = await page.evaluate(() =>
-            fetch('/resource').then(res => res.status)
-        );
+        const { status } = await makeRequest('GET', '/resource');
         expect(status).toEqual(200);
     });
 
@@ -851,14 +641,13 @@ describe('Mocketeer integration', () => {
             };
         });
 
-        const responseBody = await page.evaluate(() =>
-            fetch('/resource?param=testParam', {
-                method: 'POST',
-                body: 'testBody',
-            }).then(res => res.json())
+        const response = await makeRequest(
+            'POST',
+            '/resource?param=testParam',
+            {},
+            'testBody'
         );
-
-        expect(responseBody).toEqual({
+        expect(response.body).toEqual({
             query: {
                 param: 'testParam',
             },
@@ -873,13 +662,10 @@ describe('Mocketeer integration', () => {
             status: 200,
             body: '',
         });
-
-        const responseStatus = await page.evaluate(() =>
-            fetch('http://example.com/resource', {
-                method: 'POST',
-            }).then(res => res.status)
+        const response = await makeRequest(
+            'POST',
+            'http://example.com/resource'
         );
-
-        expect(responseStatus).toEqual(200);
+        expect(response.status).toEqual(200);
     });
 });
