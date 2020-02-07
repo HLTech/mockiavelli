@@ -6,7 +6,7 @@ export function requestToPlainObject(request: Request): ReceivedRequest {
     const url = request.url();
     const rawBody = request.postData();
     // TODO find a better alternative for url.parse
-    const { pathname, query, protocol, host } = parse(url, true);
+    const { pathname = '', query, protocol, host } = parse(url, true);
     return {
         url,
         rawBody,
@@ -78,14 +78,6 @@ export function addMockByPriority<T extends { options: { priority: number } }>(
     const calculatedIndex = index === -1 ? mockArr.length : index;
     mockArr.splice(calculatedIndex, 0, mock);
     return mockArr;
-}
-
-export function arePathsDifferent(path?: string, paramsRegexp?: RegExp) {
-    if (paramsRegexp && path) {
-        return !paramsRegexp.test(path);
-    }
-
-    return false;
 }
 
 export function createRequestFilter(

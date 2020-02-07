@@ -3,18 +3,16 @@ import {
     MatchedRequest,
     MockedResponse,
     MockOptions,
-    ParsedFilterRequest,
-    PathParameters,
     QueryObject,
     ReceivedRequest,
     MockedResponseObject,
     RequestMatcherObject,
+    PathParameters,
 } from './types';
 import {
     waitFor,
     TimeoutError,
     nth,
-    arePathsDifferent,
     getCorsHeaders,
     sanitizeHeaders,
     requestToPlainObject,
@@ -23,8 +21,8 @@ import {
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
 import { stringify } from 'querystring';
-import pathToRegexp, { Key } from 'path-to-regexp';
 import { Request } from 'puppeteer';
+import { match, MatchFunction } from 'path-to-regexp';
 
 const debug = dbg('mocketeer:rest');
 
@@ -33,16 +31,20 @@ const GET_REQUEST_TIMEOUT = 100;
 let debugId = 1;
 
 export class Mock {
-    private filter: ParsedFilterRequest;
+    private filter: {
+        method?: string;
+        hostname: string | undefined;
+        path: string;
+        query: QueryObject;
+        pathMatch: MatchFunction<PathParameters>;
+    };
     private response: MockedResponse;
     private requests: Array<MatchedRequest> = [];
     private debugId = debugId++;
-
     public options: MockOptions = {
         priority: 0,
         once: false,
     };
-    private paramNames: (string | number)[] = [];
 
     constructor(
         filter: RequestMatcherObject,
@@ -109,14 +111,16 @@ export class Mock {
         const serializedRequest = requestToPlainObject(request);
         const pageOrigin = getRequestOrigin(request);
 
-        if (!this.isMatchingRequest(serializedRequest, pageOrigin)) {
+        const matchedRequest = this.getRequestMatch(
+            serializedRequest,
+            pageOrigin
+        );
+
+        if (matchedRequest === null) {
             return null;
         }
 
-        this.requests.push({
-            ...serializedRequest,
-            params: this.getParams(serializedRequest),
-        });
+        this.requests.push(matchedRequest);
 
         const response =
             typeof this.response === 'function'
@@ -141,13 +145,13 @@ export class Mock {
         return { status, headers, body };
     }
 
-    private isMatchingRequest(
+    private getRequestMatch(
         request: ReceivedRequest,
         pageOrigin: string
-    ): boolean {
+    ): MatchedRequest | null {
         if (this.filter.method && request.method !== this.filter.method) {
             this.debugMiss('method', request.method, this.filter.method);
-            return false;
+            return null;
         }
 
         const filterRequestOrigin = this.filter.hostname || pageOrigin;
@@ -158,16 +162,18 @@ export class Mock {
                 request.hostname || `Request origin missing`,
                 filterRequestOrigin || `Filter origin missing`
             );
-            return false;
+            return null;
         }
 
-        if (arePathsDifferent(request.path, this.filter.pathRegex)) {
+        const pathMatch = this.filter.pathMatch(request.path);
+
+        if (!pathMatch) {
             this.debugMiss(
                 'url',
                 request.path || `Request path missing`,
                 this.filter.path || `Filter path missing`
             );
-            return false;
+            return null;
         }
 
         if (!this.requestParamsMatch(request.query, this.filter.query)) {
@@ -176,36 +182,31 @@ export class Mock {
                 JSON.stringify(request.query),
                 JSON.stringify(this.filter.query)
             );
-            return false;
+            return null;
         }
 
         this.debug('=', `matched mock`);
 
-        return true;
+        return {
+            ...request,
+            params: pathMatch.params,
+        };
     }
 
-    private createParsedFilterRequest(
-        filter: RequestMatcherObject
-    ): ParsedFilterRequest {
+    private createParsedFilterRequest(filter: RequestMatcherObject) {
         // TODO find a better alternative for url.parse
-        const { protocol, host, pathname, query } = parse(filter.url, true);
-        const hasHostname = protocol && host;
-        const keys: Key[] = [];
-        const pathRegex = pathname ? pathToRegexp(pathname, keys) : undefined;
-        this.paramNames = keys.map((key: Key) => key.name);
-
-        const pathParams: PathParameters = {};
-        this.paramNames.forEach(
-            (param: string | number) => (pathParams[param] = '')
+        const { protocol, host, pathname = '', query } = parse(
+            filter.url,
+            true
         );
+        const hasHostname = protocol && host;
 
         return {
             method: filter.method,
             hostname: hasHostname ? `${protocol}//${host}` : undefined,
             query: filter.query ? filter.query : query,
             path: pathname,
-            pathParams,
-            pathRegex,
+            pathMatch: match<PathParameters>(pathname),
         };
     }
 
@@ -225,23 +226,5 @@ export class Mock {
         const qs = stringify(this.filter.query);
         return `(${this.debugId}) ${this.filter.method} ${this.filter.path +
             (qs ? '?' + qs : '')}`;
-    }
-
-    private getParams(request: ReceivedRequest): PathParameters {
-        if (!this.filter.pathRegex || !this.filter.path) {
-            return {};
-        }
-
-        const matchedRegexp =
-            request.path && this.filter.pathRegex.exec(request.path);
-        const matchedParams = matchedRegexp ? matchedRegexp.slice(1) : [];
-
-        return matchedParams.reduce(
-            (pathParams: PathParameters, param: string, index: number) => ({
-                ...pathParams,
-                [this.paramNames[index]]: param,
-            }),
-            {}
-        );
     }
 }

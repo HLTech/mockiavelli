@@ -12,15 +12,6 @@ export interface RequestMatcherObject {
 
 export type RequestMatcherShort = Omit<RequestMatcherObject, 'method'> | string;
 
-export interface ParsedFilterRequest {
-    method?: string;
-    hostname: string | undefined;
-    path: string | undefined;
-    query: QueryObject;
-    pathParams: PathParameters;
-    pathRegex: RegExp | undefined;
-}
-
 export type MockedResponse = MockedResponseFunction | MockedResponseObject;
 
 type MockedResponseFunction = (req: ReceivedRequest) => MockedResponseObject;
@@ -39,7 +30,7 @@ export interface ReceivedRequest {
     rawBody?: string | undefined;
     headers: Record<string, string>;
     type: ResourceType;
-    path: string | undefined;
+    path: string;
     query: QueryObject;
 }
 
