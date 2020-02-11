@@ -29,13 +29,12 @@ describe('requestToPlainObject', () => {
         });
     });
 
-    test('returns rawBody equals to body if postData() returns non-JSON string', () => {
+    test('returns raw body equals if postData() returns non-JSON string', () => {
         const req = Request.create({
             postData: 'somestring',
         });
         expect(requestToPlainObject(req)).toMatchObject({
             body: 'somestring',
-            rawBody: 'somestring',
         });
     });
 

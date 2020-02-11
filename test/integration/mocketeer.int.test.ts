@@ -207,32 +207,31 @@ describe('Mocketeer integration', () => {
         expect(response.status).toEqual(404);
     });
 
-    it('.getRequest() returns intercepted request data', async () => {
+    it('.waitForRequest() returns intercepted request data', async () => {
         const mock = await mocketeer.mockPOST('/foo', { status: 200 });
 
         const headers = {
             'x-header': 'FOO',
         };
-        const body = JSON.stringify({ payload: 'ok' });
-        await makeRequest('POST', '/foo', headers, body);
+        const body = { payload: 'ok' };
+        await makeRequest('POST', '/foo', headers, JSON.stringify(body));
 
-        await expect(mock.getRequest()).resolves.toMatchObject({
+        await expect(mock.waitForRequest()).resolves.toMatchObject({
             method: 'POST',
             path: '/foo',
-            body: JSON.parse(body),
-            rawBody: body,
+            body: body,
             url: `http://localhost:${PORT}/foo`,
             headers: headers,
         });
     });
 
-    it('.getRequest() rejects when request matching mock was not found', async () => {
+    it('.waitForRequest() rejects when request matching mock was not found', async () => {
         const mock = await mocketeer.mock(
             { method: 'GET', url: '/some_endpoint' },
             { status: 200, body: 'OK' }
         );
 
-        await expect(mock.getRequest(0)).rejects.toMatchObject({
+        await expect(mock.waitForRequest(0)).rejects.toMatchObject({
             message: expect.stringMatching(
                 /No request matching mock \[\(\d+\) GET \/some_endpoint\] found/
             ),
@@ -240,8 +239,10 @@ describe('Mocketeer integration', () => {
 
         await makeRequest('GET', '/some_endpoint');
 
-        await expect(mock.getRequest(0)).resolves.toEqual(expect.anything());
-        await expect(mock.getRequest(1)).rejects.toMatchObject({
+        await expect(mock.waitForRequest(0)).resolves.toEqual(
+            expect.anything()
+        );
+        await expect(mock.waitForRequest(1)).rejects.toMatchObject({
             message: expect.stringMatching(
                 /2nd request matching mock \[\(\d+\) GET \/some_endpoint\] was not found/
             ),
@@ -257,7 +258,7 @@ describe('Mocketeer integration', () => {
             }, 10);
         });
 
-        await expect(mock.getRequest()).resolves.toBeTruthy();
+        await expect(mock.waitForRequest()).resolves.toBeTruthy();
     });
 
     it('can set priorities on mocks', async () => {
@@ -273,8 +274,8 @@ describe('Mocketeer integration', () => {
 
         await makeRequest('GET', '/foo');
 
-        await expect(mock.getRequest()).rejects.toEqual(expect.anything());
-        await expect(mockWithPriority.getRequest()).resolves.toEqual(
+        await expect(mock.waitForRequest()).rejects.toEqual(expect.anything());
+        await expect(mockWithPriority.waitForRequest()).resolves.toEqual(
             expect.anything()
         );
     });
@@ -311,7 +312,7 @@ describe('Mocketeer integration', () => {
 
         await page.click('body');
 
-        await expect(mock.getRequest()).resolves.toEqual(expect.anything());
+        await expect(mock.waitForRequest()).resolves.toEqual(expect.anything());
     });
 
     describe('ordering', () => {
@@ -478,7 +479,7 @@ describe('Mocketeer integration', () => {
             const mock = await mocketeer.mockGET('/foo/:id', { status: 200 });
 
             await makeRequest('GET', '/foo/123');
-            const request = await mock.getRequest();
+            const request = await mock.waitForRequest();
 
             await expect(request.params.id).toBe('123');
         });
@@ -487,7 +488,7 @@ describe('Mocketeer integration', () => {
             const mock = await mocketeer.mockGET('/foo/:id', { status: 200 });
 
             await makeRequest('GET', '/foo/test');
-            const request = await mock.getRequest();
+            const request = await mock.waitForRequest();
 
             await expect(request.params.id).toBe('test');
         });
@@ -498,7 +499,7 @@ describe('Mocketeer integration', () => {
                 { status: 200 }
             );
             await makeRequest('GET', '/foo/123?param=fooParam');
-            const request = await mock.getRequest();
+            const request = await mock.waitForRequest();
 
             await expect(request.params.id).toBe('123');
         });
@@ -515,7 +516,7 @@ describe('Mocketeer integration', () => {
                 'GET',
                 'https://localhost:3000/foo/123?param=fooParam'
             );
-            const request = await mock.getRequest();
+            const request = await mock.waitForRequest();
 
             await expect(request.params.id).toBe('123');
         });
@@ -526,7 +527,7 @@ describe('Mocketeer integration', () => {
                 { status: 200 }
             );
             await makeRequest('GET', '/foo/123/mike');
-            const request = await mock.getRequest();
+            const request = await mock.waitForRequest();
 
             await expect(request.params.id).toBe('123');
             await expect(request.params.name).toBe('mike');
@@ -639,7 +640,7 @@ describe('Mocketeer integration', () => {
                 body: {
                     query: request.query,
                     url: request.url,
-                    rawBody: request.rawBody,
+                    body: request.body,
                     method: request.method,
                     params: request.params,
                 },
@@ -658,7 +659,7 @@ describe('Mocketeer integration', () => {
             },
             url: 'http://localhost:9000/resource/123?param=testParam',
             method: 'POST',
-            rawBody: 'testBody',
+            body: 'testBody',
             params: { id: '123' },
         });
     });

@@ -9,13 +9,11 @@ import {
 
 export function requestToPlainObject(request: Request): ReceivedRequest {
     const url = request.url();
-    const rawBody = request.postData();
     // TODO find a better alternative for url.parse
     const { pathname = '', query, protocol, host } = parse(url, true);
     return {
         url,
-        rawBody,
-        body: toJson(rawBody),
+        body: toJson(request.postData()),
         method: request.method(),
         headers: request.headers(),
         type: request.resourceType(),

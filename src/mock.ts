@@ -73,7 +73,7 @@ export class Mock {
         );
     }
 
-    public async getRequest(index: number = 0): Promise<MatchedRequest> {
+    public async waitForRequest(index: number = 0): Promise<MatchedRequest> {
         try {
             await waitFor(
                 () => Boolean(this.requests[index]),
@@ -192,7 +192,12 @@ export class Mock {
         this.debug('=', `matched mock`);
 
         return {
-            ...request,
+            url: request.url,
+            path: request.path,
+            query: request.query,
+            method: request.method,
+            body: request.body,
+            headers: request.headers,
             params: pathMatch.params,
         };
     }

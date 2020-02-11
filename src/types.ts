@@ -13,9 +13,9 @@ export interface RequestMatcherObject {
 
 export type RequestMatcherShort = Omit<RequestMatcherObject, 'method'> | string;
 
-export type MockedResponse = MockedResponseFunction | MockedResponseObject;
-
-type MockedResponseFunction = (req: MatchedRequest) => MockedResponseObject;
+export type MockedResponse =
+    | ((req: MatchedRequest) => MockedResponseObject)
+    | MockedResponseObject;
 
 export interface MockedResponseObject {
     status: number;
@@ -28,7 +28,6 @@ export interface ReceivedRequest {
     method: string;
     hostname: string;
     body?: any;
-    rawBody?: string | undefined;
     headers: Record<string, string>;
     type: ResourceType;
     path: string;
@@ -37,7 +36,13 @@ export interface ReceivedRequest {
 
 export type PathParameters = Record<string, string | number>;
 
-export interface MatchedRequest extends ReceivedRequest {
+export interface MatchedRequest {
+    url: string;
+    method: string;
+    body?: any;
+    headers: Record<string, string>;
+    path: string;
+    query: QueryObject;
     params: PathParameters;
 }
 
