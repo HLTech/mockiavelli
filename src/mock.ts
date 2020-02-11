@@ -37,6 +37,7 @@ export class Mock {
         path: string;
         query: QueryObject;
         pathMatch: MatchFunction<PathParameters>;
+        body: any;
     };
     private response: MockedResponse;
     private requests: Array<MatchedRequest> = [];
@@ -185,6 +186,15 @@ export class Mock {
             return null;
         }
 
+        if (this.filter.body && !isEqual(request.body, this.filter.body)) {
+            this.debugMiss(
+                'body',
+                JSON.stringify(request.body),
+                JSON.stringify(this.filter.body)
+            );
+            return null;
+        }
+
         this.debug('=', `matched mock`);
 
         return {
@@ -207,6 +217,7 @@ export class Mock {
             query: filter.query ? filter.query : query,
             path: pathname,
             pathMatch: match<PathParameters>(pathname),
+            body: filter.body,
         };
     }
 

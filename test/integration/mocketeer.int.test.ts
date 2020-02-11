@@ -112,6 +112,35 @@ describe('Mocketeer integration', () => {
         expect(response2.body).not.toEqual('ok');
     });
 
+    test('match by request body', async () => {
+        mocketeer.mockPOST(
+            { url: '/example', body: { key: 'value' } },
+            { status: 200 }
+        );
+        const response = await makeRequest(
+            'POST',
+            '/example',
+            {},
+            JSON.stringify({ key: 'value' })
+        );
+        expect(response.status).toEqual(200);
+    });
+
+    test('match by request body - negative scenario', async () => {
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+        mocketeer.mockPOST(
+            { url: '/example', body: { key: 'value' } },
+            { status: 200 }
+        );
+        const response = await makeRequest(
+            'POST',
+            '/example',
+            {},
+            JSON.stringify({ key: 'non_matching_value' })
+        );
+        expect(response.status).toEqual(404);
+    });
+
     it('mocks multiple requests', async () => {
         mocketeer.mock('/foo', { status: 200 });
         const res1 = await makeRequest('GET', '/foo');

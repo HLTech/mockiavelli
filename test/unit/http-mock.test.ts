@@ -1,4 +1,5 @@
 import { createRestMock, Request } from './fixtures/request';
+import { Mock } from '../../src';
 
 test('.getResponseForRequest matches GET request', () => {
     const mock = createRestMock();
@@ -201,4 +202,66 @@ test('.getResponseForRequest does not match GET request when path variables are 
     mock.getResponseForRequest(exampleRequest);
 
     expect(mock.getResponseForRequest(exampleRequest)).toBeNull();
+});
+
+test('.getResponseForRequest returns truthy when filter.body matches request body ', () => {
+    const mock = new Mock(
+        {
+            url: '/example',
+            body: {
+                key: 'value',
+            },
+        },
+        { status: 200 }
+    );
+    const matchingRequest = Request.create({
+        url: '/example',
+        postData: JSON.stringify({
+            key: 'value',
+        }),
+    });
+    const nonMatchingRequest = Request.create({
+        url: '/example',
+        postData: JSON.stringify({
+            key: 'another',
+        }),
+    });
+    expect(mock.getResponseForRequest(matchingRequest)).toBeTruthy();
+    expect(mock.getResponseForRequest(nonMatchingRequest)).toBeFalsy();
+});
+
+test('.getResponseForRequest returns truthy when filter.body matches request body regardless of key order ', () => {
+    const mock = new Mock(
+        {
+            url: '/example',
+            body: {
+                key1: 'value1',
+                key2: 'value2',
+            },
+        },
+        { status: 200 }
+    );
+    const matchingRequest = Request.create({
+        url: '/example',
+        postData: JSON.stringify({
+            key2: 'value2',
+            key1: 'value1',
+        }),
+    });
+    expect(mock.getResponseForRequest(matchingRequest)).toBeTruthy();
+});
+
+test('.getResponseForRequest returns truthy when filter body matches request body and body is string', () => {
+    const mock = new Mock(
+        {
+            url: '/example',
+            body: 'body_value',
+        },
+        { status: 200 }
+    );
+    const matchingRequest = Request.create({
+        url: '/example',
+        postData: 'body_value',
+    });
+    expect(mock.getResponseForRequest(matchingRequest)).toBeTruthy();
 });

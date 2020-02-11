@@ -8,6 +8,7 @@ export interface RequestMatcherObject {
     method?: string;
     url: string;
     query?: QueryObject;
+    body?: any;
 }
 
 export type RequestMatcherShort = Omit<RequestMatcherObject, 'method'> | string;

@@ -26,7 +26,9 @@ function toJson(data: string | undefined): any | undefined {
     }
     try {
         return JSON.parse(data);
-    } catch (e) {}
+    } catch (e) {
+        return data;
+    }
 }
 
 export class TimeoutError extends Error {}
