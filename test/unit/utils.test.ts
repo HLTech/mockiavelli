@@ -2,7 +2,7 @@ import {
     requestToPlainObject,
     waitFor,
     addMockByPriority,
-    createRequestFilter,
+    createRequestMatcher,
     printResponse,
 } from '../../src/utils';
 import { createRestMock, Request } from './fixtures/request';
@@ -131,41 +131,23 @@ describe('addMockByPriority', () => {
 
 describe('createRequestMatcher', () => {
     test('return object when provided input as string', () => {
-        expect(createRequestFilter('http://example.com')).toEqual({
+        expect(createRequestMatcher('http://example.com', 'POST')).toEqual({
+            method: 'POST',
             url: 'http://example.com',
         });
     });
 
     test('return object when provided input as object', () => {
         expect(
-            createRequestFilter({
-                url: 'http://example.com',
-                method: 'POST',
-            })
-        ).toEqual({
-            url: 'http://example.com',
-            method: 'POST',
-        });
-    });
-
-    test('return expected object when provided defaults', () => {
-        expect(createRequestFilter('http://example.com', 'POST')).toEqual({
-            method: 'POST',
-            url: 'http://example.com',
-        });
-
-        expect(
-            createRequestFilter(
+            createRequestMatcher(
                 {
-                    url: 'http://foo.com',
-                    query: { param: 'value' },
+                    url: 'http://example.com',
                 },
                 'POST'
             )
         ).toEqual({
+            url: 'http://example.com',
             method: 'POST',
-            url: 'http://foo.com',
-            query: { param: 'value' },
         });
     });
 });

@@ -18,10 +18,10 @@ Mocketeer is HTTP request mocking library for [Puppeteer](http://pptr.dev/). It 
 -   [Getting started](#getting-started)
 -   [Full example](#full-example)
 -   [Usage guide](#guide)
-    -   [Mocking requests](#mocking-requests)
-    -   [Request assertion](#request-assertion)
+    -   [URL and method matching](#url-and-method-matching)
     -   [Path parameters matching](#path-parameters-matching)
     -   [Query params matching](#query-parameters-matching)
+    -   [Request assertion](#request-assertion)
     -   [One-time mocks](#one-time-mocks)
     -   [Matching order](#matching-order)
     -   [Matching priority](#matching-priority)
@@ -51,25 +51,23 @@ const { Mocketeer } = require('@hltech/mocketeer');
 const mocketeer = await Mocketeer.setup(page);
 ```
 
-Mocketeer now intercepts all HTTP requests issues from this page.
+Mocketeer now intercepts all requests originating from this page.
 
 To define response for a given request, call `mocketeer.mock<HTTP_METHOD>` with request URL and response object:
 
 ```typescript
-const getUsersMock = mocketeer.mockPOST('/api/users', {
-    status: 201,
-    body: { id: 123 },
+mocketeer.mockGET('/api/users', {
+    status: 200,
+    body: [{ id: 123, name: 'John Doe' }, { id: 456, name: 'Mary Jane' }],
 });
 ```
 
-Now every `POST /api/users` request issued from this page will receive `201 Created` response with provided body.
+Now every `GET /api/users` request issued from this page will receive `200 OK` response with provided body.
 
-You can also inspect the details of the request once it has been made:
-
-```
-const request = await getUsersMock.getRequest();
-console.log(request);
-// > {url: 'http://example.com/api/users', body: { name: 'John', ...}, headers: {...}}
+```typescript
+await page.click('.fetch-users-button'); // trigger request
+const users = await page.$('.user-row'); // find rendered elements
+users.length === 2; // inspect
 ```
 
 ## Full example <a name="full-example"/>
@@ -105,7 +103,7 @@ test('Sign-up form', async () => {
     await page.click('button.submit');
 
     // Verify request payload
-    const postUserRequest = await postUserMock.getRequest();
+    const postUserRequest = await postUserMock.waitForRequest();
     expect(postUserRequest.body).toEqual({
         user_name: 'John Doe',
         user_email: 'email@example.com',
@@ -121,53 +119,33 @@ test('Sign-up form', async () => {
 
 ## Usage guide <a name="guide"/>
 
-### Mocking requests <a name="mocking-requests"/>
+### URL and method matching <a name="url-and-method-matching"/>
 
-To mock any HTTP request matching given URL and method use `mocketeer.mock<HTTP_METHOD>(url, response)`:
+Request can be matched by:
 
-```
-mocketeer.mockGET('/api/users', {status: 200, body: [....]})
-mocketeer.mockPOST('/api/users', {status: 201, body: {...})
-mocketeer.mockPUT('/api/users/123', {status: 200, body: {...}})
-mocketeer.mockDELETE('/api/users/123', {status: 202})
+-   providing URL string to `mocketeer.mock<HTTP_METHOD>` method:
 
-// GET /endpoint => 200
-// POST /endpoint => 201
-// PUT /endpoint => 200
-// DELETE /endpoint => 202
-```
+    ```
+    mocketeer.mockGET('/api/users?age=30', {status: 200, body: [....]})
+    ```
 
-Alternatively, you can also pass an object to `mocketeer.mock` method.
+-   providing matcher object to `mocketeer.mock<HTTP_METHOD>` method
 
-```
-mocketeer.mock({
-  method: 'GET',
-  url: '/api/users'
-}, {
-  status: 200,
-  body: [...]
-});
-```
+    ```
+    mocketeer.mockGET({
+        url: '/api/users',
+        query: { age: '30' }
+    }, {status: 200, body: [....]})
+    ```
 
-Those 2 ways of defining mocks are completely equivalent.
-
-### Request assertion <a name="request-assertion"/>
-
-`mocketeer.mock<HTTP_METHOD>` returns an instance of `Mock` class that records all requests the matched given mock.
-
-To assert details of request made by application use async `mock.getRequest()` method. It will throw an error if no matching request was made.
-
-```
-const postUsersMock = mocketeer.mockPOST('/api/users', {status: 200});
-
-// ... perform interaction on tested page ...
-
-const postUserRequest = await postUsersMock.getRequest(); // Throws if POST /api/users request was not made
-expect(postUserRequest.body).toBe({
-  name: 'John',
-  email: 'john@example.com'
-});
-```
+-   providing full matcher object `mocketeer.mock` method
+    ```
+    mocketeer.mock({
+        method: 'GET'
+        url: '/api/users',
+        query: { age: '30' }
+    }, {status: 200, body: [....]})
+    ```
 
 ### Path parameters matching <a name="path-parameters-matching"/>
 
@@ -180,7 +158,7 @@ const getUserMock = mocketeer.mockGET('/api/users/:userId', { status: 200 });
 // GET /api/users => 404
 // GET /api/users/1234/categories => 404
 
-console.log(await getUserMock.getRequest());
+console.log(await getUserMock.waitForRequest());
 // { params: {userId : "12345"}, path: "/api/users/12345", ... }
 ```
 
@@ -202,6 +180,24 @@ It is also possible to define query parameters as object. This notation works gr
 mocketeer.mockGET({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
 
 // GET /api/users?status=active&status=blocked  => 200
+```
+
+### Request assertion <a name="request-assertion"/>
+
+`mocketeer.mock<HTTP_METHOD>` and `mocketeer.mock` methods return an instance of `Mock` class that records all requests the matched given mock.
+
+To assert details of request made by application use async `mock.waitForRequest()` method. It will throw an error if no matching request was made.
+
+```
+const postUsersMock = mocketeer.mockPOST('/api/users', {status: 200});
+
+// ... perform interaction on tested page ...
+
+const postUserRequest = await postUsersMock.waitForRequest(); // Throws if POST /api/users request was not made
+expect(postUserRequest.body).toBe({
+  name: 'John',
+  email: 'john@example.com'
+});
 ```
 
 ### One-time mocks <a name="one-time-mocks"/>
@@ -322,13 +318,14 @@ const mocketeer = await Mocketeer.setup(page);
 
 Promise resolved with instance of `Mocketeer` once request mocking is established.
 
-#### `mocketeer.mock<HTTP_METHOD?>(matcher, response, options?)`
+#### `mocketeer.mock(matcher, response, options?)`
 
-Respond all requests of `HTTP_METHOD` method matching `matcher` with provided `response`.
+Respond all requests of matching `matcher` with provided `response`.
 
 ###### Arguments
 
--   `matcher` _(string | object)_ matches request with mock. Can be URL string or an object with following properties:
+-   `matcher` _(object)_ matches request with mock.
+    -   `method: string` - any valid HTTP method
     -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
     -   `query?: object` object literal which accepts strings and arrays of strings as values, transformed to queryString
     -   `method: string` -
@@ -343,6 +340,40 @@ Respond all requests of `HTTP_METHOD` method matching `matcher` with provided `r
 ###### Returns
 
 Instance of `Mock`.
+
+```typescript
+// Match by query parameters passed in query object
+mocketeer.mock(
+    {
+        method: 'GET',
+        url: '/api/clients',
+        query: {
+            city: 'Bristol',
+            limit: 10,
+        },
+    },
+    {
+        status: 200,
+        body: [{...}],
+    }
+);
+```
+
+#### `mocketeer.mock<HTTP_METHOD>(matcher, response, options?)`
+
+Shorthand method for `mocketeer.mock`. Matches all request with `HTTP_METHOD` method. In addition to matcher object, it also accepts URL string as first argument.
+
+-   `matcher` _(string | object)_ URL string or object with following properties:
+    -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
+    -   `query?: object` object literal which accepts strings and arrays of strings as values, transformed to queryString
+    -   `method: string` -
+-   `response` _(object | function)_ content of mocked response. Can be a object or a function returning object with following properties:
+    -   `status: number`
+    -   `headers?: object`
+    -   `body?: any`
+-   `options?` _(object)_ optional config object
+    -   `prority` _(number)_ when intercepted request matches multiple mock, mocketeer will use the one with highest priority
+    -   `once` _(boolean)_ _(default: false)_ when set to true intercepted request will be matched only once
 
 ###### Examples
 
@@ -399,7 +430,7 @@ mocketeer.mockGET('http://example.com/api/clients/', {
 
 ### `class Mock` <a name="Mock"/>
 
-#### `getRequest(index?: number): Promise<MatchedRequest>`
+#### `waitForRequest(index?: number): Promise<MatchedRequest>`
 
 Retrieve n-th request matched by the mock. The method is async - it will wait 100ms for requests to be intercepted to avoid race condition issue. Throws if mock was not matched by any request.
 
@@ -429,7 +460,7 @@ const patchClientMock = mocketeer.mockPATCH('/api/client/:clientId', { status: 2
 
 // .. send request from page ...
 
-const patchClientRequest = await patchClientMock.getRequest();
+const patchClientRequest = await patchClientMock.waitForRequest();
 
 expect(patchClientRequest).toEqual({
     method: 'PATCH',

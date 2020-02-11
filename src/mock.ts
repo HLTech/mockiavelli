@@ -5,7 +5,7 @@ import {
     MockOptions,
     QueryObject,
     MockedResponseObject,
-    RequestMatcherObject,
+    RequestMatcher,
     PathParameters,
 } from './types';
 import {
@@ -28,8 +28,8 @@ const GET_REQUEST_TIMEOUT = 100;
 let debugId = 1;
 
 export class Mock {
-    private filter: {
-        method?: string;
+    private matcher: {
+        method: string;
         hostname: string | undefined;
         path: string;
         query: QueryObject;
@@ -45,16 +45,16 @@ export class Mock {
     };
 
     constructor(
-        filter: RequestMatcherObject,
+        matcher: RequestMatcher,
         response: MockedResponse,
         options: Partial<MockOptions> = {}
     ) {
-        this.filter = this.createParsedFilterRequest(filter);
+        this.matcher = this.parseMatcher(matcher);
         this.response = response;
         this.options = { ...this.options, ...options };
         this.debug(
             '+',
-            `created mock: method=${filter.method || ''} url=${filter.url}`
+            `created mock: method=${matcher.method} url=${matcher.url}`
         );
     }
 
@@ -65,11 +65,11 @@ export class Mock {
     private debugMiss(
         reason: string,
         requestValue: string,
-        filterValue: string
+        matcherValue: string
     ) {
         this.debug(
             `·`,
-            `${reason} not matched: mock=${filterValue} req=${requestValue} `
+            `${reason} not matched: mock=${matcherValue} req=${requestValue} `
         );
     }
 
@@ -144,47 +144,47 @@ export class Mock {
         const request = requestToPlainObject(rawRequest);
         const pageOrigin = getRequestOrigin(rawRequest);
 
-        if (this.filter.method && request.method !== this.filter.method) {
-            this.debugMiss('method', request.method, this.filter.method);
+        if (request.method !== this.matcher.method) {
+            this.debugMiss('method', request.method, this.matcher.method);
             return null;
         }
 
-        const filterRequestOrigin = this.filter.hostname || pageOrigin;
+        const matcherOrigin = this.matcher.hostname || pageOrigin;
 
-        if (filterRequestOrigin !== request.hostname) {
+        if (matcherOrigin !== request.hostname) {
             this.debugMiss(
                 'url',
                 request.hostname || `Request origin missing`,
-                filterRequestOrigin || `Filter origin missing`
+                matcherOrigin || `Matcher origin missing`
             );
             return null;
         }
 
-        const pathMatch = this.filter.pathMatch(request.path);
+        const pathMatch = this.matcher.pathMatch(request.path);
 
         if (!pathMatch) {
             this.debugMiss(
                 'url',
                 request.path || `Request path missing`,
-                this.filter.path || `Filter path missing`
+                this.matcher.path || `Matcher path missing`
             );
             return null;
         }
 
-        if (!this.requestParamsMatch(request.query, this.filter.query)) {
+        if (!this.requestParamsMatch(request.query, this.matcher.query)) {
             this.debugMiss(
                 'query',
                 JSON.stringify(request.query),
-                JSON.stringify(this.filter.query)
+                JSON.stringify(this.matcher.query)
             );
             return null;
         }
 
-        if (this.filter.body && !isEqual(request.body, this.filter.body)) {
+        if (this.matcher.body && !isEqual(request.body, this.matcher.body)) {
             this.debugMiss(
                 'body',
                 JSON.stringify(request.body),
-                JSON.stringify(this.filter.body)
+                JSON.stringify(this.matcher.body)
             );
             return null;
         }
@@ -202,21 +202,21 @@ export class Mock {
         };
     }
 
-    private createParsedFilterRequest(filter: RequestMatcherObject) {
+    private parseMatcher(matcher: RequestMatcher) {
         // TODO find a better alternative for url.parse
         const { protocol, host, pathname = '', query } = parse(
-            filter.url,
+            matcher.url,
             true
         );
         const hasHostname = protocol && host;
 
         return {
-            method: filter.method,
+            method: matcher.method,
             hostname: hasHostname ? `${protocol}//${host}` : undefined,
-            query: filter.query ? filter.query : query,
+            query: matcher.query ? matcher.query : query,
             path: pathname,
             pathMatch: match<PathParameters>(pathname),
-            body: filter.body,
+            body: matcher.body,
         };
     }
 
@@ -233,8 +233,8 @@ export class Mock {
     }
 
     private prettyPrint(): string {
-        const qs = stringify(this.filter.query);
-        return `(${this.debugId}) ${this.filter.method || 'HTTP'} ${this.filter
-            .path + (qs ? '?' + qs : '')}`;
+        const qs = stringify(this.matcher.query);
+        return `(${this.debugId}) ${this.matcher.method || 'HTTP'} ${this
+            .matcher.path + (qs ? '?' + qs : '')}`;
     }
 }

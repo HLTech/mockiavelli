@@ -4,7 +4,7 @@ import {
     HttpMethod,
     ReceivedRequest,
     RequestMatcher,
-    RequestMatcherObject,
+    ShorthandRequestMatcher,
 } from './types';
 
 export function requestToPlainObject(request: Request): ReceivedRequest {
@@ -86,10 +86,10 @@ export function addMockByPriority<T extends { options: { priority: number } }>(
     return mockArr;
 }
 
-export function createRequestFilter(
-    input: RequestMatcher,
-    method?: HttpMethod
-): RequestMatcherObject {
+export function createRequestMatcher(
+    input: ShorthandRequestMatcher,
+    method: HttpMethod
+): RequestMatcher {
     if (typeof input === 'string') {
         return {
             method,

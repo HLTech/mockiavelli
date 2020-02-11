@@ -2,16 +2,20 @@ import { ResourceType } from 'puppeteer';
 
 export type QueryObject = Record<string, string | string[]>;
 
-export type RequestMatcher = RequestMatcherObject | string;
-
-export interface RequestMatcherObject {
-    method?: string;
+export interface RequestMatcher {
+    method: HttpMethod;
     url: string;
     query?: QueryObject;
     body?: any;
 }
 
-export type RequestMatcherShort = Omit<RequestMatcherObject, 'method'> | string;
+export type ShorthandRequestMatcher =
+    | {
+          url: string;
+          query?: QueryObject;
+          body?: any;
+      }
+    | string;
 
 export type MockedResponse =
     | ((req: MatchedRequest) => MockedResponseObject)

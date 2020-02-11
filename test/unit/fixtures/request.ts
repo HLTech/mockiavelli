@@ -6,7 +6,7 @@ import {
     ResourceType,
     Response,
 } from 'puppeteer';
-import { MockOptions, RequestMatcherObject, Mock } from '../../../src';
+import { MockOptions, RequestMatcher, Mock } from '../../../src';
 import { parse } from 'url';
 
 /**
@@ -129,7 +129,7 @@ const mockedResponse = {
 };
 
 export const createRestMock = (
-    change: Partial<RequestMatcherObject> = {},
+    change: Partial<RequestMatcher> = {},
     options?: Partial<MockOptions>
 ) => {
     return new Mock(

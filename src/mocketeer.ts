@@ -5,12 +5,12 @@ import {
     MockedResponse,
     MockOptions,
     RequestMatcher,
-    RequestMatcherShort,
+    ShorthandRequestMatcher,
 } from './types';
 import {
     addMockByPriority,
     printRequest,
-    createRequestFilter,
+    createRequestMatcher,
     getCorsHeaders,
     sanitizeHeaders,
     printResponse,
@@ -49,63 +49,70 @@ export class Mocketeer {
     }
 
     public mock(
-        filter: RequestMatcher,
+        matcher: RequestMatcher,
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
-        const filterObject = createRequestFilter(filter);
-        const mock = new Mock(filterObject, response, { ...options });
+        const mock = new Mock(matcher, response, { ...options });
         addMockByPriority(this.mocks, mock);
         return mock;
     }
 
     public mockGET(
-        filter: RequestMatcherShort,
-        response: MockedResponse,
-        options?: Partial<MockOptions>
-    ): Mock {
-        return this.mock(createRequestFilter(filter, 'GET'), response, options);
-    }
-
-    public mockPOST(
-        filter: RequestMatcherShort,
+        matcher: ShorthandRequestMatcher,
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
-            createRequestFilter(filter, 'POST'),
+            createRequestMatcher(matcher, 'GET'),
+            response,
+            options
+        );
+    }
+
+    public mockPOST(
+        matcher: ShorthandRequestMatcher,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): Mock {
+        return this.mock(
+            createRequestMatcher(matcher, 'POST'),
             response,
             options
         );
     }
 
     public mockPUT(
-        filter: RequestMatcherShort,
-        response: MockedResponse,
-        options?: Partial<MockOptions>
-    ): Mock {
-        return this.mock(createRequestFilter(filter, 'PUT'), response, options);
-    }
-
-    public mockDELETE(
-        filter: RequestMatcherShort,
+        matcher: ShorthandRequestMatcher,
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
-            createRequestFilter(filter, 'DELETE'),
+            createRequestMatcher(matcher, 'PUT'),
+            response,
+            options
+        );
+    }
+
+    public mockDELETE(
+        matcher: ShorthandRequestMatcher,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): Mock {
+        return this.mock(
+            createRequestMatcher(matcher, 'DELETE'),
             response,
             options
         );
     }
 
     public mockPATCH(
-        filter: RequestMatcherShort,
+        matcher: ShorthandRequestMatcher,
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
-            createRequestFilter(filter, 'PATCH'),
+            createRequestMatcher(matcher, 'PATCH'),
             response,
             options
         );

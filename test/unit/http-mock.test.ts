@@ -207,6 +207,7 @@ test('.getResponseForRequest does not match GET request when path variables are 
 test('.getResponseForRequest returns truthy when filter.body matches request body ', () => {
     const mock = new Mock(
         {
+            method: 'GET',
             url: '/example',
             body: {
                 key: 'value',
@@ -233,6 +234,7 @@ test('.getResponseForRequest returns truthy when filter.body matches request bod
 test('.getResponseForRequest returns truthy when filter.body matches request body regardless of key order ', () => {
     const mock = new Mock(
         {
+            method: 'GET',
             url: '/example',
             body: {
                 key1: 'value1',
@@ -254,6 +256,7 @@ test('.getResponseForRequest returns truthy when filter.body matches request bod
 test('.getResponseForRequest returns truthy when filter body matches request body and body is string', () => {
     const mock = new Mock(
         {
+            method: 'GET',
             url: '/example',
             body: 'body_value',
         },

@@ -1,4 +1,4 @@
-import { Mocketeer, RequestMatcherShort, Mock } from '../../src';
+import { Mocketeer, Mock } from '../../src';
 import { createMockPage } from './fixtures/page';
 import { Request } from './fixtures/request';
 jest.mock('../../src/mock');
@@ -54,8 +54,8 @@ describe('Mocketeer', () => {
     describe('mock http methods', () => {
         let mocketeer: Mocketeer;
         const url = 'url';
-        const filter: RequestMatcherShort = { url };
-        const filterWithQuery: RequestMatcherShort = {
+        const filter = { url };
+        const filterWithQuery = {
             url,
             query: {
                 param: 'fooParam',
