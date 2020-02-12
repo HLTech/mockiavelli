@@ -1,6 +1,11 @@
 import { parse } from 'url';
 import { Request, Headers } from 'puppeteer';
-import { ReceivedRequest, RequestMatcher, RequestMatcherObject } from './types';
+import {
+    HttpMethod,
+    ReceivedRequest,
+    RequestMatcher,
+    RequestMatcherObject,
+} from './types';
 
 export function requestToPlainObject(request: Request): ReceivedRequest {
     const url = request.url();
@@ -84,16 +89,16 @@ export function addMockByPriority<T extends { options: { priority: number } }>(
 
 export function createRequestFilter(
     input: RequestMatcher,
-    defaults: Omit<RequestMatcherObject, 'url'> = {}
+    method?: HttpMethod
 ): RequestMatcherObject {
     if (typeof input === 'string') {
         return {
-            ...defaults,
+            method,
             url: input,
         };
     } else {
         return {
-            ...defaults,
+            method,
             ...input,
         };
     }

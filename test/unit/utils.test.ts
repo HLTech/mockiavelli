@@ -149,11 +149,7 @@ describe('createRequestMatcher', () => {
     });
 
     test('return expected object when provided defaults', () => {
-        expect(
-            createRequestFilter('http://example.com', {
-                method: 'POST',
-            })
-        ).toEqual({
+        expect(createRequestFilter('http://example.com', 'POST')).toEqual({
             method: 'POST',
             url: 'http://example.com',
         });
@@ -164,9 +160,7 @@ describe('createRequestMatcher', () => {
                     url: 'http://foo.com',
                     query: { param: 'value' },
                 },
-                {
-                    method: 'POST',
-                }
+                'POST'
             )
         ).toEqual({
             method: 'POST',

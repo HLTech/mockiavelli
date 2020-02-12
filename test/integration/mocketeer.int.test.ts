@@ -1,10 +1,17 @@
-import { Mocketeer } from '../../src';
+import { Mocketeer, HttpMethod } from '../../src';
 import { Browser, launch, Page } from 'puppeteer';
 import { makeRequestFactory } from './test-helpers/make-request-factory';
 
 const PORT = 9000;
 
-const METHODS = ['GET', 'POST', 'PUT', 'DELETE'];
+const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+
+type MocketeerHttpMethods =
+    | 'mockGET'
+    | 'mockPUT'
+    | 'mockPOST'
+    | 'mockDELETE'
+    | 'mockPATCH';
 
 describe('Mocketeer integration', () => {
     let browser: Browser;
@@ -75,7 +82,7 @@ describe('Mocketeer integration', () => {
     test.each(METHODS)(
         'matches request with .mock%s() method ',
         async METHOD => {
-            mocketeer['mock' + METHOD]('/example', {
+            mocketeer[('mock' + METHOD) as MocketeerHttpMethods]('/example', {
                 status: 200,
                 body: METHOD,
             });

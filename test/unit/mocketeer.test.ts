@@ -1,4 +1,4 @@
-import { Mocketeer, RequestMatcherShort, REST_METHOD, Mock } from '../../src';
+import { Mocketeer, RequestMatcherShort, Mock } from '../../src';
 import { createMockPage } from './fixtures/page';
 import { Request } from './fixtures/request';
 jest.mock('../../src/mock');
@@ -70,7 +70,7 @@ describe('Mocketeer', () => {
         test('should create RestMock using GET method and filter as object', () => {
             mocketeer.mockGET(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
-                expect.objectContaining({ method: REST_METHOD.GET, ...filter }),
+                expect.objectContaining({ method: 'GET', ...filter }),
                 mockResponse,
                 expect.anything()
             );
@@ -80,7 +80,7 @@ describe('Mocketeer', () => {
             mocketeer.mockGET(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.GET,
+                    method: 'GET',
                     ...filterWithQuery,
                 }),
                 mockResponse,
@@ -91,7 +91,7 @@ describe('Mocketeer', () => {
         test('should create RestMock using GET method and filter as url string', () => {
             mocketeer.mockGET(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
-                expect.objectContaining({ method: REST_METHOD.GET, ...filter }),
+                expect.objectContaining({ method: 'GET', ...filter }),
                 mockResponse,
                 expect.anything()
             );
@@ -101,7 +101,7 @@ describe('Mocketeer', () => {
             mocketeer.mockPOST(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.POST,
+                    method: 'POST',
                     ...filter,
                 }),
                 mockResponse,
@@ -113,7 +113,7 @@ describe('Mocketeer', () => {
             mocketeer.mockPOST(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.POST,
+                    method: 'POST',
                     ...filterWithQuery,
                 }),
                 mockResponse,
@@ -125,7 +125,7 @@ describe('Mocketeer', () => {
             mocketeer.mockPOST(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.POST,
+                    method: 'POST',
                     ...filter,
                 }),
                 mockResponse,
@@ -136,7 +136,7 @@ describe('Mocketeer', () => {
         test('should create RestMock using PUT method and filter as object', () => {
             mocketeer.mockPUT(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
-                expect.objectContaining({ method: REST_METHOD.PUT, ...filter }),
+                expect.objectContaining({ method: 'PUT', ...filter }),
                 mockResponse,
                 expect.anything()
             );
@@ -146,7 +146,7 @@ describe('Mocketeer', () => {
             mocketeer.mockPUT(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.PUT,
+                    method: 'PUT',
                     ...filterWithQuery,
                 }),
                 mockResponse,
@@ -157,7 +157,7 @@ describe('Mocketeer', () => {
         test('should create RestMock using PUT method and filter as url string', () => {
             mocketeer.mockPUT(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
-                expect.objectContaining({ method: REST_METHOD.PUT, ...filter }),
+                expect.objectContaining({ method: 'PUT', ...filter }),
                 mockResponse,
                 expect.anything()
             );
@@ -167,7 +167,7 @@ describe('Mocketeer', () => {
             mocketeer.mockDELETE(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.DELETE,
+                    method: 'DELETE',
                     ...filter,
                 }),
                 mockResponse,
@@ -179,7 +179,7 @@ describe('Mocketeer', () => {
             mocketeer.mockDELETE(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.DELETE,
+                    method: 'DELETE',
                     ...filterWithQuery,
                 }),
                 mockResponse,
@@ -191,7 +191,19 @@ describe('Mocketeer', () => {
             mocketeer.mockDELETE(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    method: REST_METHOD.DELETE,
+                    method: 'DELETE',
+                    ...filter,
+                }),
+                mockResponse,
+                expect.anything()
+            );
+        });
+
+        test('should create RestMock using PATCH method and filter as url string', () => {
+            mocketeer.mockPATCH(url, mockResponse);
+            expect(Mock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: 'PATCH',
                     ...filter,
                 }),
                 mockResponse,

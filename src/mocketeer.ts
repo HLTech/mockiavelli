@@ -6,7 +6,6 @@ import {
     MockOptions,
     RequestMatcher,
     RequestMatcherShort,
-    REST_METHOD,
 } from './types';
 import {
     addMockByPriority,
@@ -64,10 +63,7 @@ export class Mocketeer {
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
-        const filterObject = createRequestFilter(filter, {
-            method: REST_METHOD.GET,
-        });
-        return this.mock(filterObject, response, options);
+        return this.mock(createRequestFilter(filter, 'GET'), response, options);
     }
 
     public mockPOST(
@@ -75,10 +71,11 @@ export class Mocketeer {
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
-        const filterObject = createRequestFilter(filter, {
-            method: REST_METHOD.POST,
-        });
-        return this.mock(filterObject, response, options);
+        return this.mock(
+            createRequestFilter(filter, 'POST'),
+            response,
+            options
+        );
     }
 
     public mockPUT(
@@ -86,10 +83,7 @@ export class Mocketeer {
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
-        const filterObject = createRequestFilter(filter, {
-            method: REST_METHOD.PUT,
-        });
-        return this.mock(filterObject, response, options);
+        return this.mock(createRequestFilter(filter, 'PUT'), response, options);
     }
 
     public mockDELETE(
@@ -97,10 +91,23 @@ export class Mocketeer {
         response: MockedResponse,
         options?: Partial<MockOptions>
     ): Mock {
-        const filterObject = createRequestFilter(filter, {
-            method: REST_METHOD.DELETE,
-        });
-        return this.mock(filterObject, response, options);
+        return this.mock(
+            createRequestFilter(filter, 'DELETE'),
+            response,
+            options
+        );
+    }
+
+    public mockPATCH(
+        filter: RequestMatcherShort,
+        response: MockedResponse,
+        options?: Partial<MockOptions>
+    ): Mock {
+        return this.mock(
+            createRequestFilter(filter, 'PATCH'),
+            response,
+            options
+        );
     }
 
     public removeMock(mock: Mock): Mock | void {
