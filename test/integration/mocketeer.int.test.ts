@@ -688,4 +688,20 @@ describe('Mocketeer integration', () => {
         await page.waitForNavigation();
         await expect(page.title()).resolves.toEqual('page1');
     });
+
+    test('set correct response headers when response body is empty', async () => {
+        await mocketeer.mock('/example', { status: 200 });
+        const response = await makeRequest('GET', '/example');
+        expect(response.headers['content-length']).toBe('0');
+        expect(response.headers['content-type']).toBe(undefined);
+    });
+
+    test('set correct response headers when response body is not empty', async () => {
+        await mocketeer.mock('/example', { status: 200, body: { ok: 'yes' } });
+        const response = await makeRequest('GET', '/example');
+        expect(response.headers['content-length']).toBe('12');
+        expect(response.headers['content-type']).toContain(
+            'application/json; charset=utf-8'
+        );
+    });
 });

@@ -58,7 +58,8 @@ export function waitFor(fn: () => boolean, timeout = 100): Promise<void> {
 }
 
 export function printRequest(request: Request): string {
-    return `${request.resourceType()} ${request.method()} ${request.url()}`;
+    return `type=${request.resourceType()} method=${request.method() ||
+        ''} url=${request.url() || ''}`;
 }
 
 export function nth(d: number): string {
@@ -142,4 +143,14 @@ export function sanitizeHeaders(headers: Headers): Headers {
         }
         return acc;
     }, {});
+}
+
+export function printResponse(
+    status: number,
+    headers: Record<string, string>,
+    body: Buffer
+): string {
+    const headersStr = JSON.stringify(headers);
+    const bodyStr = body.toString('utf8');
+    return `status=${status} headers=${headersStr} body=${bodyStr}`;
 }

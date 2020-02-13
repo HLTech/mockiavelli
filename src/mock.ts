@@ -13,8 +13,6 @@ import {
     waitFor,
     TimeoutError,
     nth,
-    getCorsHeaders,
-    sanitizeHeaders,
     requestToPlainObject,
     getRequestOrigin,
 } from './utils';
@@ -57,7 +55,7 @@ export class Mock {
         this.options = { ...this.options, ...options };
         this.debug(
             '+',
-            `created mock: method=${filter.method} url=${filter.url}`
+            `created mock: method=${filter.method || ''} url=${filter.url}`
         );
     }
 
@@ -128,22 +126,7 @@ export class Mock {
                 ? this.response(serializedRequest)
                 : this.response;
 
-        const status = response.status || 200;
-
-        // Set default value of Content-Type header
-        const headers = sanitizeHeaders({
-            ['content-type']: `'application/json';charset=UTF-8`,
-            ...getCorsHeaders(request),
-            ...response.headers,
-        });
-
-        // Serialize JSON response
-        const body =
-            typeof response.body !== 'string'
-                ? JSON.stringify(response.body)
-                : response.body;
-
-        return { status, headers, body };
+        return response;
     }
 
     private getRequestMatch(

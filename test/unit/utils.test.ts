@@ -3,6 +3,7 @@ import {
     waitFor,
     addMockByPriority,
     createRequestFilter,
+    printResponse,
 } from '../../src/utils';
 import { createRestMock, Request } from './fixtures/request';
 
@@ -168,4 +169,18 @@ describe('createRequestMatcher', () => {
             query: { param: 'value' },
         });
     });
+});
+
+test('printResponse()', () => {
+    expect(
+        printResponse(
+            200,
+            {
+                'content-type': 'text/html; charset=utf-8',
+                date: 'Thu, 13 Feb 2020 17:03:57 GMT',
+                'content-language': 'de-DE, en-CA',
+            },
+            Buffer.from(JSON.stringify({ foo: 'bar' }))
+        )
+    ).toMatchSnapshot();
 });

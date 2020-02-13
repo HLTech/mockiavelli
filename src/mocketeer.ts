@@ -13,6 +13,7 @@ import {
     createRequestFilter,
     getCorsHeaders,
     sanitizeHeaders,
+    printResponse,
 } from './utils';
 
 const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
@@ -122,9 +123,7 @@ export class Mocketeer {
         const should404 =
             interceptedTypes.indexOf(request.resourceType()) !== -1;
 
-        debug(
-            `> req: type=${request.resourceType()} method=${request.method()} url=${request.url()} `
-        );
+        debug(`> req: ${printRequest(request)} `);
 
         // Handle preflight requests
         if (request.method() === 'OPTIONS') {
@@ -138,15 +137,49 @@ export class Mocketeer {
             const response = mock.getResponseForRequest(request);
 
             if (response) {
+                const status = response.status || 200;
+
+                // Convert response body to Buffer.
+                // A bug in puppeteer causes stalled response when body is equal to "" or undefined.
+                // Providing response as Buffer fixes it.
+                let body: Buffer;
+                if (typeof response.body === 'string') {
+                    body = Buffer.from(response.body);
+                } else if (
+                    response.body === undefined ||
+                    response.body === null
+                ) {
+                    body = Buffer.alloc(0);
+                } else {
+                    try {
+                        body = Buffer.from(JSON.stringify(response.body));
+                    } catch (e) {
+                        // Response body in either not JSON-serializable or something else
+                        // that cannot be handled. In this case we throw an error
+                        console.error('Could not serialize response body', e);
+                        throw e;
+                    }
+                }
+
+                // Set default value of Content-Type header
+                const headers = sanitizeHeaders({
+                    'content-length': String(body.length),
+                    'content-type':
+                        body.length > 0
+                            ? `application/json; charset=utf-8`
+                            : '',
+                    ...getCorsHeaders(request),
+                    ...response.headers,
+                });
+
                 try {
-                    debug(
-                        `< res: status=${
-                            response.status
-                        } headers=${JSON.stringify(response.headers)} body=${
-                            response.body
-                        }`
-                    );
-                    return await request.respond(response);
+                    await request.respond({
+                        status,
+                        headers,
+                        body,
+                    });
+                    debug(`< res: ${printResponse(status, headers, body)}`);
+                    return;
                 } catch (e) {
                     console.error(
                         `Failed to reply with mocked response for ${printRequest(
