@@ -4,7 +4,6 @@ import {
     MockedResponse,
     MockOptions,
     QueryObject,
-    ReceivedRequest,
     MockedResponseObject,
     RequestMatcherObject,
     PathParameters,
@@ -107,13 +106,7 @@ export class Mock {
             return null;
         }
 
-        const serializedRequest = requestToPlainObject(request);
-        const pageOrigin = getRequestOrigin(request);
-
-        const matchedRequest = this.getRequestMatch(
-            serializedRequest,
-            pageOrigin
-        );
+        const matchedRequest = this.getRequestMatch(request);
 
         if (matchedRequest === null) {
             return null;
@@ -123,16 +116,16 @@ export class Mock {
 
         const response =
             typeof this.response === 'function'
-                ? this.response(serializedRequest)
+                ? this.response(matchedRequest)
                 : this.response;
 
         return response;
     }
 
-    private getRequestMatch(
-        request: ReceivedRequest,
-        pageOrigin: string
-    ): MatchedRequest | null {
+    private getRequestMatch(rawRequest: Request): MatchedRequest | null {
+        const request = requestToPlainObject(rawRequest);
+        const pageOrigin = getRequestOrigin(rawRequest);
+
         if (this.filter.method && request.method !== this.filter.method) {
             this.debugMiss('method', request.method, this.filter.method);
             return null;

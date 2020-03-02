@@ -633,7 +633,7 @@ describe('Mocketeer integration', () => {
     });
 
     test('mocked response in function of request data', async () => {
-        await mocketeer.mock('/resource', request => {
+        await mocketeer.mock('/resource/:id', request => {
             return {
                 status: 200,
                 body: {
@@ -641,13 +641,14 @@ describe('Mocketeer integration', () => {
                     url: request.url,
                     rawBody: request.rawBody,
                     method: request.method,
+                    params: request.params,
                 },
             };
         });
 
         const response = await makeRequest(
             'POST',
-            '/resource?param=testParam',
+            '/resource/123?param=testParam',
             {},
             'testBody'
         );
@@ -655,9 +656,10 @@ describe('Mocketeer integration', () => {
             query: {
                 param: 'testParam',
             },
-            url: 'http://localhost:9000/resource?param=testParam',
+            url: 'http://localhost:9000/resource/123?param=testParam',
             method: 'POST',
             rawBody: 'testBody',
+            params: { id: '123' },
         });
     });
 

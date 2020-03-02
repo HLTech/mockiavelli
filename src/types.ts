@@ -15,7 +15,7 @@ export type RequestMatcherShort = Omit<RequestMatcherObject, 'method'> | string;
 
 export type MockedResponse = MockedResponseFunction | MockedResponseObject;
 
-type MockedResponseFunction = (req: ReceivedRequest) => MockedResponseObject;
+type MockedResponseFunction = (req: MatchedRequest) => MockedResponseObject;
 
 export interface MockedResponseObject {
     status: number;
