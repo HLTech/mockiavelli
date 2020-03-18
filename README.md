@@ -444,3 +444,7 @@ expect(patchClientRequest).toEqual({
     params: { clientId: '' }
 })
 ```
+
+#### `waitForRequestCount(n: number): Promise<void>`
+
+Waits until mock is matched my `n` requests. Throws error when timeout (equal to 100ms) is exceeded.

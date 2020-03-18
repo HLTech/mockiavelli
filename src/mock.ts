@@ -98,6 +98,24 @@ export class Mock {
         return this.requests[index];
     }
 
+    public async waitForRequestsCount(count: number): Promise<void> {
+        try {
+            await waitFor(
+                () => this.requests.length === count,
+                GET_REQUEST_TIMEOUT
+            );
+        } catch (e) {
+            if (e instanceof TimeoutError) {
+                throw new Error(
+                    `Expected ${count} requests to match mock [${this.prettyPrint()}]. Instead ${
+                        this.requests.length
+                    } request were matched.`
+                );
+            }
+            throw e;
+        }
+    }
+
     public getResponseForRequest(
         request: Request
     ): MockedResponseObject | null {
@@ -211,7 +229,7 @@ export class Mock {
 
     private prettyPrint(): string {
         const qs = stringify(this.filter.query);
-        return `(${this.debugId}) ${this.filter.method} ${this.filter.path +
-            (qs ? '?' + qs : '')}`;
+        return `(${this.debugId}) ${this.filter.method || 'HTTP'} ${this.filter
+            .path + (qs ? '?' + qs : '')}`;
     }
 }

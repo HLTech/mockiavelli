@@ -706,4 +706,22 @@ describe('Mocketeer integration', () => {
             'application/json; charset=utf-8'
         );
     });
+
+    test('wait for a number of requests to be matched', async () => {
+        const mock = await mocketeer.mock('/example', { status: 200 });
+        await makeRequest('GET', '/example');
+        await makeRequest('GET', '/example');
+        await mock.waitForRequestsCount(2);
+    });
+
+    test('wait for a number of requests to be matched - async scenario', async () => {
+        const mock = await mocketeer.mock('/example', { status: 200 });
+        await makeRequest('GET', '/example', {}, undefined, {
+            waitForRequestEnd: false,
+        });
+        await makeRequest('GET', '/example', {}, undefined, {
+            waitForRequestEnd: false,
+        });
+        await mock.waitForRequestsCount(2);
+    });
 });
