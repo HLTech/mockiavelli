@@ -1,5 +1,3 @@
-import { ResourceType } from 'puppeteer';
-
 export type QueryObject = Record<string, string | string[]>;
 
 export interface RequestMatcher {
@@ -25,17 +23,6 @@ export interface MockedResponseObject {
     status: number;
     headers?: Record<string, string>;
     body?: any;
-}
-
-export interface ReceivedRequest {
-    url: string;
-    method: string;
-    hostname: string;
-    body?: any;
-    headers: Record<string, string>;
-    type: ResourceType;
-    path: string;
-    query: QueryObject;
 }
 
 export type PathParameters = Record<string, string | number>;

@@ -1,53 +1,21 @@
 import { Mocketeer, Mock } from '../../src';
 import { createMockPage } from './fixtures/page';
-import { Request } from './fixtures/request';
 jest.mock('../../src/mock');
+jest.mock('../../src/controllers/BrowserControllerFactory', () => ({
+    BrowserControllerFactory: class {
+        static getForPage = jest.fn().mockReturnValue({
+            startInterception: jest.fn(),
+        });
+    },
+}));
 
 describe('Mocketeer', () => {
-    describe('.activate', () => {
-        it('.calls page.setRequestInterception and page.on ', async () => {
-            const page = createMockPage();
-            await Mocketeer.setup(page as any);
-            expect(page.setRequestInterception).toHaveBeenCalledWith(true);
-            expect(page.on).toHaveBeenCalledWith(
-                'request',
-                expect.any(Function)
-            );
-        });
-    });
-
     describe('setup()', () => {
         it('returns a promise resolving to instance of Mocketeer', async () => {
             const page = createMockPage();
             await expect(Mocketeer.setup(page)).resolves.toBeInstanceOf(
                 Mocketeer
             );
-        });
-
-        it('.calls page.setRequestInterception and page.on ', async () => {
-            const page = createMockPage();
-            await Mocketeer.setup(page);
-            expect(page.setRequestInterception).toHaveBeenCalledWith(true);
-            expect(page.on).toHaveBeenCalledWith(
-                'request',
-                expect.any(Function)
-            );
-        });
-    });
-
-    describe('on "request"', () => {
-        let page: ReturnType<typeof createMockPage>;
-
-        beforeEach(async () => {
-            page = createMockPage();
-            await Mocketeer.setup(page);
-        });
-
-        test('calls continue request of unsupported resource type ', () => {
-            const callback = page.on.mock.calls[0][1];
-            const request = Request.create({ resourceType: 'image' });
-            callback(request);
-            expect(request.continue).toHaveBeenCalled();
         });
     });
 

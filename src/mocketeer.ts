@@ -1,4 +1,3 @@
-import { Page, Request, ResourceType } from 'puppeteer';
 import dbg from 'debug';
 import { Mock } from './mock';
 import {
@@ -15,10 +14,19 @@ import {
     sanitizeHeaders,
     printResponse,
 } from './utils';
-
-const interceptedTypes: ResourceType[] = ['xhr', 'fetch'];
+import {
+    BrowserController,
+    BrowserRequestHandler,
+    BrowserRequestType,
+} from './controllers/BrowserController';
+import {
+    BrowserPage,
+    BrowserControllerFactory,
+} from './controllers/BrowserControllerFactory';
 
 const debug = dbg('mocketeer:main');
+
+const interceptedTypes: BrowserRequestType[] = ['xhr', 'fetch'];
 
 export interface MocketeerOptions {
     debug: boolean;
@@ -35,17 +43,17 @@ export class Mocketeer {
     }
 
     public static async setup(
-        page: Page,
+        page: BrowserPage,
         options: Partial<MocketeerOptions> = {}
     ): Promise<Mocketeer> {
         const mocketeer = new Mocketeer(options);
-        await mocketeer.activate(page);
+        const controller = BrowserControllerFactory.getForPage(page);
+        await mocketeer.activate(controller);
         return mocketeer;
     }
 
-    private async activate(page: Page): Promise<void> {
-        await page.setRequestInterception(true);
-        page.on('request', request => this.onRequest(request));
+    private async activate(controller: BrowserController): Promise<void> {
+        await controller.startInterception(this.onRequest);
     }
 
     public mock(
@@ -125,16 +133,16 @@ export class Mocketeer {
         }
     }
 
-    private async onRequest(request: Request): Promise<void> {
-        // Serialize request
-        const should404 =
-            interceptedTypes.indexOf(request.resourceType()) !== -1;
-
+    private onRequest: BrowserRequestHandler = async (
+        request,
+        respond,
+        skip
+    ): Promise<void> => {
         debug(`> req: ${printRequest(request)} `);
 
         // Handle preflight requests
-        if (request.method() === 'OPTIONS') {
-            return await request.respond({
+        if (request.method === 'OPTIONS') {
+            return await respond({
                 status: 204,
                 headers: sanitizeHeaders(getCorsHeaders(request)),
             });
@@ -180,7 +188,7 @@ export class Mocketeer {
                 });
 
                 try {
-                    await request.respond({
+                    await respond({
                         status,
                         headers,
                         body,
@@ -199,13 +207,15 @@ export class Mocketeer {
             }
         }
 
+        const should404 = interceptedTypes.includes(request.type);
+
         // Request was not matched - log error and return 404
         if (should404) {
             debug(`< res: status=404`);
             console.error(
                 `Mock not found for request: ${printRequest(request)}`
             );
-            return request.respond({
+            return respond({
                 status: 404,
                 body: 'No mock provided for request',
             });
@@ -214,11 +224,11 @@ export class Mocketeer {
         // Do not intercept non xhr/fetch requests
         debug(`< res: continue`);
         try {
-            return await request.continue();
+            return await skip();
         } catch (e) {
             console.error(e);
             // Request could be already handled so ignore this error
             return;
         }
-    }
+    };
 }

@@ -1,53 +1,10 @@
 import {
-    requestToPlainObject,
     waitFor,
     addMockByPriority,
     createRequestMatcher,
     printResponse,
 } from '../../src/utils';
-import { createRestMock, Request } from './fixtures/request';
-
-describe('requestToPlainObject', () => {
-    test('returns serialized request object', () => {
-        const req = Request.create({
-            postData: JSON.stringify({ foo: 'bar' }),
-            url: 'http://example.com:8000/some/path?foo=bar#baz',
-            method: 'GET',
-            headers: { header: 'header' },
-            resourceType: 'xhr',
-        });
-        expect(requestToPlainObject(req)).toMatchObject({
-            headers: {
-                header: 'header',
-            },
-            hostname: 'http://example.com:8000',
-            method: 'GET',
-            path: '/some/path',
-            query: {
-                foo: 'bar',
-            },
-        });
-    });
-
-    test('returns raw body equals if postData() returns non-JSON string', () => {
-        const req = Request.create({
-            postData: 'somestring',
-        });
-        expect(requestToPlainObject(req)).toMatchObject({
-            body: 'somestring',
-        });
-    });
-
-    test('returns correct path and url when origin contains trailing slash', () => {
-        const req = Request.create({
-            url: 'http://origin:8000/some/path',
-        });
-        expect(requestToPlainObject(req)).toMatchObject({
-            url: 'http://origin:8000/some/path',
-            path: '/some/path',
-        });
-    });
-});
+import { createRestMock } from './fixtures/request';
 
 test('waitFor', async () => {
     const now = Date.now();

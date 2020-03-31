@@ -1,29 +1,7 @@
-import { parse } from 'url';
-import { Request, Headers } from 'puppeteer';
-import {
-    HttpMethod,
-    ReceivedRequest,
-    RequestMatcher,
-    ShorthandRequestMatcher,
-} from './types';
+import { HttpMethod, RequestMatcher } from './types';
+import { BrowserRequest } from './controllers/BrowserController';
 
-export function requestToPlainObject(request: Request): ReceivedRequest {
-    const url = request.url();
-    // TODO find a better alternative for url.parse
-    const { pathname = '', query, protocol, host } = parse(url, true);
-    return {
-        url,
-        body: toJson(request.postData()),
-        method: request.method(),
-        headers: request.headers(),
-        type: request.resourceType(),
-        path: pathname,
-        hostname: `${protocol}//${host}`,
-        query,
-    };
-}
-
-function toJson(data: string | undefined): any | undefined {
+export function tryJsonParse(data: any): any | undefined {
     if (!data) {
         return;
     }
@@ -55,9 +33,8 @@ export function waitFor(fn: () => boolean, timeout = 100): Promise<void> {
     });
 }
 
-export function printRequest(request: Request): string {
-    return `type=${request.resourceType()} method=${request.method() ||
-        ''} url=${request.url() || ''}`;
+export function printRequest(request: BrowserRequest): string {
+    return `type=${request.type} method=${request.method} url=${request.url}`;
 }
 
 export function nth(d: number): string {
@@ -103,10 +80,12 @@ export function createRequestMatcher(
     }
 }
 
-export function getCorsHeaders(request: Request) {
-    const requestHeaders = request.headers();
-    const origin = getRequestOrigin(request);
-    const headers: Headers = {
+export function getCorsHeaders(
+    request: BrowserRequest
+): Record<string, string> {
+    const requestHeaders = request.headers;
+    const origin = request.sourceOrigin;
+    const headers = {
         'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Allow-Methods':
@@ -119,23 +98,13 @@ export function getCorsHeaders(request: Request) {
 }
 
 /**
- * Obtain request origin url from originating frame url
- * @param request
- */
-export function getRequestOrigin(request: Request) {
-    const originFrame = request.frame();
-    const originFrameUrl = originFrame ? originFrame.url() : '';
-    // TODO find a better alternative for url.parse
-    const { protocol, host } = parse(originFrameUrl);
-    return `${protocol}//${host}`;
-}
-
-/**
  * Sanitize headers object from empty or null values
  * because they make request hang indefinitely in puppeteer
  */
-export function sanitizeHeaders(headers: Headers): Headers {
-    return Object.keys(headers).reduce<Headers>((acc, key) => {
+export function sanitizeHeaders(
+    headers: Record<string, string>
+): Record<string, string> {
+    return Object.keys(headers).reduce<Record<string, string>>((acc, key) => {
         if (Boolean(headers[key])) {
             acc[key] = headers[key];
         }

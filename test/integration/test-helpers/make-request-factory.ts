@@ -1,6 +1,7 @@
 import { Page } from 'puppeteer';
+import playwright from 'playwright';
 
-export function makeRequestFactory(page: Page) {
+export function makeRequestFactory(page: Page | playwright.Page) {
     return async function(
         method: string,
         url: string,
@@ -8,6 +9,7 @@ export function makeRequestFactory(page: Page) {
         body?: any,
         options?: { waitForRequestEnd: boolean }
     ): Promise<{ status: number; headers: Record<string, string>; body: any }> {
+        // @ts-ignore
         return page.evaluate(makeRequest, url, method, headers, body, options);
     };
 }

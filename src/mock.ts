@@ -8,18 +8,12 @@ import {
     RequestMatcher,
     PathParameters,
 } from './types';
-import {
-    waitFor,
-    TimeoutError,
-    nth,
-    requestToPlainObject,
-    getRequestOrigin,
-} from './utils';
+import { waitFor, TimeoutError, nth } from './utils';
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
 import { stringify } from 'querystring';
-import { Request } from 'puppeteer';
 import { match, MatchFunction } from 'path-to-regexp';
+import { BrowserRequest } from './controllers/BrowserController';
 
 const debug = dbg('mocketeer:rest');
 
@@ -117,7 +111,7 @@ export class Mock {
     }
 
     public getResponseForRequest(
-        request: Request
+        request: BrowserRequest
     ): MockedResponseObject | null {
         if (this.options.once && this.requests.length > 0) {
             this.debug('once', 'Request already matched');
@@ -140,16 +134,14 @@ export class Mock {
         return response;
     }
 
-    private getRequestMatch(rawRequest: Request): MatchedRequest | null {
-        const request = requestToPlainObject(rawRequest);
-        const pageOrigin = getRequestOrigin(rawRequest);
+    private getRequestMatch(request: BrowserRequest): MatchedRequest | null {
 
         if (request.method !== this.matcher.method) {
             this.debugMiss('method', request.method, this.matcher.method);
             return null;
         }
 
-        const matcherOrigin = this.matcher.hostname || pageOrigin;
+        const matcherOrigin = this.matcher.hostname || request.sourceOrigin;
 
         if (matcherOrigin !== request.hostname) {
             this.debugMiss(

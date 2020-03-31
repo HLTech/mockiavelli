@@ -1,14 +1,12 @@
-import { createRestMock, Request } from './fixtures/request';
+import { createRestMock } from './fixtures/request';
 import { Mock } from '../../src';
+import { browserRequest } from './fixtures/browserRequest';
 
 test('.getResponseForRequest matches GET request', () => {
     const mock = createRestMock();
-
     expect(
         mock.getResponseForRequest(
-            Request.create({
-                url: 'http://example/foo',
-            })
+            browserRequest.build({ url: 'http://example.com/foo' })
         )
     ).not.toBeNull();
 });
@@ -23,7 +21,7 @@ test('.getResponseForRequest matches GET request when query params passed as an 
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url:
                     'http://example/foo?example=firstExample&secondExample=secondExampleParam',
             })
@@ -40,7 +38,7 @@ test('.getResponseForRequest matches GET request when query params are numbers',
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://example/foo?exampleNum=111',
             })
         )
@@ -56,7 +54,7 @@ test('.getResponseForRequest matches GET request when query params are arrays', 
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://example/foo?exampleArray=122&exampleArray=3223',
             })
         )
@@ -73,7 +71,7 @@ test('.getResponseForRequest does not match GET request when some query params a
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://example/foo?example=exampleParam',
             })
         )
@@ -89,7 +87,7 @@ test('.getResponseForRequest does not match GET request when query params values
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://example/foo?example=exampleParam',
             })
         )
@@ -103,7 +101,7 @@ test('.getResponseForRequest matches GET request with query params passed in the
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://example/foo?example=exampleParam',
             })
         )
@@ -117,7 +115,7 @@ test('.getResponseForRequest matches GET request with specified origin', () => {
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://example/foo',
             })
         )
@@ -126,14 +124,14 @@ test('.getResponseForRequest matches GET request with specified origin', () => {
 
 test('.getResponseForRequest does not match GET request with specified origin', () => {
     const mock = createRestMock({
-        url: 'http://barExample/foo',
+        url: 'http://example.com/foo',
     });
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
-                url: 'http://fooExample/foo',
-                origin: 'http://localhost',
+            browserRequest.build({
+                url: 'http://foo.example.com/foo',
+                sourceOrigin: 'http://bar.example.com',
             })
         )
     ).toBeNull();
@@ -144,9 +142,9 @@ test('.getResponseForRequest does not match GET request when pageOrigin is diffe
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://fooExample/foo',
-                origin: 'http://localhost',
+                sourceOrigin: 'http://localhost',
             })
         )
     ).toBeNull();
@@ -157,7 +155,7 @@ test('.getResponseForRequest matches GET request first time when once option is 
 
     expect(
         mock.getResponseForRequest(
-            Request.create({
+            browserRequest.build({
                 url: 'http://example/foo',
             })
         )
@@ -166,7 +164,7 @@ test('.getResponseForRequest matches GET request first time when once option is 
 
 test('.getResponseForRequest does not match second GET request when once option is set to true', () => {
     const mock = createRestMock(undefined, { once: true });
-    const exampleRequest = Request.create({
+    const exampleRequest = browserRequest.build({
         url: 'http://example/foo',
     });
     mock.getResponseForRequest(exampleRequest);
@@ -176,7 +174,7 @@ test('.getResponseForRequest does not match second GET request when once option 
 
 test('.getResponseForRequest matches GET request with path variable', () => {
     const mock = createRestMock({ url: '/foo/:id' });
-    const exampleRequest = Request.create({
+    const exampleRequest = browserRequest.build({
         url: 'http://example/foo/param',
     });
     mock.getResponseForRequest(exampleRequest);
@@ -186,7 +184,7 @@ test('.getResponseForRequest matches GET request with path variable', () => {
 
 test('.getResponseForRequest matches GET request with multiple path variables', () => {
     const mock = createRestMock({ url: '/foo/:id/:resource' });
-    const exampleRequest = Request.create({
+    const exampleRequest = browserRequest.build({
         url: 'http://example/foo/param/second',
     });
     mock.getResponseForRequest(exampleRequest);
@@ -196,7 +194,7 @@ test('.getResponseForRequest matches GET request with multiple path variables', 
 
 test('.getResponseForRequest does not match GET request when path variables are set and not present in request', () => {
     const mock = createRestMock({ url: '/foo/:id' });
-    const exampleRequest = Request.create({
+    const exampleRequest = browserRequest.build({
         url: 'http://example/foo',
     });
     mock.getResponseForRequest(exampleRequest);
@@ -215,17 +213,17 @@ test('.getResponseForRequest returns truthy when filter.body matches request bod
         },
         { status: 200 }
     );
-    const matchingRequest = Request.create({
+    const matchingRequest = browserRequest.build({
         url: '/example',
-        postData: JSON.stringify({
+        body: {
             key: 'value',
-        }),
+        } as any,
     });
-    const nonMatchingRequest = Request.create({
+    const nonMatchingRequest = browserRequest.build({
         url: '/example',
-        postData: JSON.stringify({
+        body: {
             key: 'another',
-        }),
+        } as any,
     });
     expect(mock.getResponseForRequest(matchingRequest)).toBeTruthy();
     expect(mock.getResponseForRequest(nonMatchingRequest)).toBeFalsy();
@@ -243,12 +241,12 @@ test('.getResponseForRequest returns truthy when filter.body matches request bod
         },
         { status: 200 }
     );
-    const matchingRequest = Request.create({
+    const matchingRequest = browserRequest.build({
         url: '/example',
-        postData: JSON.stringify({
+        body: {
             key2: 'value2',
             key1: 'value1',
-        }),
+        } as any,
     });
     expect(mock.getResponseForRequest(matchingRequest)).toBeTruthy();
 });
@@ -262,9 +260,9 @@ test('.getResponseForRequest returns truthy when filter body matches request bod
         },
         { status: 200 }
     );
-    const matchingRequest = Request.create({
+    const matchingRequest = browserRequest.build({
         url: '/example',
-        postData: 'body_value',
+        body: 'body_value' as any,
     });
     expect(mock.getResponseForRequest(matchingRequest)).toBeTruthy();
 });

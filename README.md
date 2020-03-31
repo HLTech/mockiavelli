@@ -1,6 +1,6 @@
 # Mocketeer
 
-Mocketeer is HTTP request mocking library for [Puppeteer](http://pptr.dev/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
+Mocketeer is HTTP request mocking library for [Puppeteer](http://pptr.dev/) and [Playwright](https://github.com/microsoft/playwright/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
 
 ## Main features
 
@@ -38,12 +38,12 @@ Mocketeer is HTTP request mocking library for [Puppeteer](http://pptr.dev/). It 
 yarn add @hltech/mocketeer
 ```
 
--   Mocketeer requires [Puppeteer](https://pptr.dev/) which need to be installed separately
--   If you're using [jest](jestjs.io/) we also recommend to install [jest-puppeteer](https://github.com/smooth-code/jest-puppeteer)
+-   Mocketeer requires [Puppeteer](https://pptr.dev/) or [Playwright](https://www.npmjs.com/package/playwright/) which need to be installed separately
+-   If you're using [jest](jestjs.io/) we also recommend to install [jest-puppeteer](https://github.com/smooth-code/jest-puppeteer) or [jest-playwright](https://www.npmjs.com/package/jest-playwright-preset)
 
 ## Getting started <a name="getting-started"/>
 
-To start using Mocketeer, you need to instantiate `Mocketeer` class by providing it an instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page).
+To start using Mocketeer, you need to instantiate `Mocketeer` class by providing it an instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
 
 ```typescript
 const { Mocketeer } = require('@hltech/mocketeer');
@@ -294,7 +294,7 @@ await Mocketeer.setup(page, {debug: true});
 
 #### `Mocketeer.setup(page, options): Promise<Mocketeer>`
 
-Factory method used to set-up request mocking on provided Puppeteer Page. It creates and returns an instance of Mocketeer
+Factory method used to set-up request mocking on provided Puppeteer or Playwright Page. It creates and returns an instance of Mocketeer
 
 Once created, mocketeer will intercept all requests made by the page and match them with defined mocks.
 
@@ -302,7 +302,7 @@ If request does not match any mocks, it will be responded with `404 Not Found`.
 
 ###### Arguments
 
--   `page` _(Page)_ instance of Puppeteer [Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page)
+-   `page` _(Page)_ instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
 -   `options` _(object)_ configuration options
     -   `debug: boolean` turns debug mode with logging to console (default: `false`)
 
