@@ -51,12 +51,12 @@ const { Mocketeer } = require('@hltech/mocketeer');
 const mocketeer = await Mocketeer.setup(page);
 ```
 
-Mocketeer now intercepts all requests originating from this page.
+Mocketeer now intercepts all HTTP requests issued from this page.
 
-To define response for a given request, call `mocketeer.mock<HTTP_METHOD>` with request URL and response object:
+To define response for a given request, call `mocketeer.mock` with request URL and response object:
 
 ```typescript
-mocketeer.mockGET('/api/users', {
+const getUsersMock = mocketeer.mockGET('/api/users', {
     status: 200,
     body: [{ id: 123, name: 'John Doe' }, { id: 456, name: 'Mary Jane' }],
 });
@@ -65,29 +65,28 @@ mocketeer.mockGET('/api/users', {
 Now every `GET /api/users` request issued from this page will receive `200 OK` response with provided body.
 
 ```typescript
-await page.click('.fetch-users-button'); // trigger request
-const users = await page.$('.user-row'); // find rendered elements
-users.length === 2; // inspect
+await page.click('.fetch-users'); // trigger request
+await getUsersMock.waitForRequest(); // wait for mock to respond the request
+
+const users = await page.$('.user-list', el => el.textContent); // get rendered elements
+console.log(users); // => 123 John Doe, 456 Mary Jane
 ```
 
 ## Full example <a name="full-example"/>
 
-The example below is a [Jest](https://jestjs.io/en/) test case verifies a sign-up form in a locally running application.
+The example below is a [Jest](https://jestjs.io/en) test case (with [jest-puppeteer preset](https://github.com/smooth-code/jest-puppeteer)) verifies a sign-up form in a locally running application.
 
 Mocketeer is used to mock and assert request that the app makes to REST API upon form submission.
 
 ```js
-const puppeteer = require('puppeteer');
 const { Mocketeer } = require('@hltech/mocketeer');
 
 test('Sign-up form', async () => {
-    // Launch puppeteer and navigate to application
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto('http://localhost:8000/');
-
-    // Enable Mocketeer on an instance of puppeteer Page
+    // Enable Mocketeer on an instance of puppeteer Page provided by jest-puppeteer
     const mocketeer = await Mocketeer.setup(page);
+
+    // Navigate to application
+    await page.goto('http://localhost:8000/');
 
     // Configure mocked response
     const postUserMock = mocketeer.mockPOST('/api/user', {
@@ -110,10 +109,7 @@ test('Sign-up form', async () => {
     });
 
     // Verify message shown on the screen
-    const msg = page.evaluate(
-        () => document.querySelector('.message').textContent
-    );
-    expect(msg).toEqual('Created account 123');
+    await expect(page).toMatch('Created account ID: 123');
 });
 ```
 
@@ -152,7 +148,7 @@ Request can be matched by:
 Path parameters in the URL can be matched using `:param` notation. When a request is made, the actual params are exposed in `request.params`:
 
 ```js
-const getUserMock = mocketeer.mockGET('/api/users/:userId', { status: 200 });
+const getUserMock = mocketeer.mock('/api/users/:userId', { status: 200 });
 
 // GET /api/users/1234 => 200
 // GET /api/users => 404
@@ -167,7 +163,7 @@ console.log(await getUserMock.waitForRequest());
 Mocketeer supports matching requests by query parameters. All defined params are then required to match the request, but excess params are ignored:
 
 ```
-mocketeer.mockGET('/api/users?status=active&sort=asc', {status: 200})
+mocketeer.mock('/api/users?status=active&sort=asc', {status: 200})
 
 // GET /api/users?status=active&sort=asc            => 200
 // GET /api/users?status=active&sort=asc&limit=10   => 200
@@ -177,7 +173,7 @@ mocketeer.mockGET('/api/users?status=active&sort=asc', {status: 200})
 It is also possible to define query parameters as object. This notation works great for matching array query params:
 
 ```
-mocketeer.mockGET({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
+mocketeer.mock({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
 
 // GET /api/users?status=active&status=blocked  => 200
 ```
@@ -205,7 +201,7 @@ expect(postUserRequest.body).toBe({
 By default mock are persistent, meaning that they will respond to multiple matching requests:
 
 ```
-mocketeer.mockGET('/api/users', {status: 200});
+mocketeer.mock('/api/users', {status: 200});
 
 // GET /api/users => 200
 // GET /api/users => 200
@@ -214,7 +210,7 @@ mocketeer.mockGET('/api/users', {status: 200});
 To change this behaviour and disable mock once it matched a request use `once` option:
 
 ```
-mocketeer.mockGET('/api/users', {status: 200}, {once: true});
+mocketeer.mock('/api/users', {status: 200}, {once: true});
 
 // GET /api/users => 200
 // GET /api/users => 404
@@ -225,12 +221,12 @@ mocketeer.mockGET('/api/users', {status: 200}, {once: true});
 Mocks are matched in the "newest first" order. To override previously defined mock simply define new one:
 
 ```
-mocketeer.mockGET('/api/users', {status: 200});
-mocketeer.mockGET('/api/users', {status: 401});
+mocketeer.mock('/api/users', {status: 200});
+mocketeer.mock('/api/users', {status: 401});
 
 // GET /api/users => 401
 
-mocketeer.mockGET('/api/users', {status: 500})
+mocketeer.mock('/api/users', {status: 500})
 
 // GET /api/users => 500
 ```
@@ -240,9 +236,9 @@ mocketeer.mockGET('/api/users', {status: 500})
 To change the default "newest first" matching order, you define mocks with combination of `once` and `priority` parameters:
 
 ```
-mocketeer.mockGET('/api/users', {status: 404}, {once: true, priority: 10});
-mocketeer.mockGET('/api/users', {status: 500}, {once: true, priority: 5});
-mocketeer.mockGET('/api/users', {status: 200});
+mocketeer.mock('/api/users', {status: 404}, {once: true, priority: 10});
+mocketeer.mock('/api/users', {status: 500}, {once: true, priority: 5});
+mocketeer.mock('/api/users', {status: 200});
 
 // GET /api/users => 404
 // GET /api/users => 500
@@ -254,7 +250,7 @@ mocketeer.mockGET('/api/users', {status: 200});
 Mocketeer has built-in support for cross-origin requests. If application and API are not on the same origin (domain) just provide the full request URL to `mocketeer.mock<HTTP_METHOD>`
 
 ```typescript
-mocketeer.mockGET('http://api.example.com/api/users', { status: 200 });
+mocketeer.mock('http://api.example.com/api/users', { status: 200 });
 
 // GET http://api.example.com/api/users => 200
 // GET http://app.example.com/api/users => 404
@@ -265,7 +261,7 @@ mocketeer.mockGET('http://api.example.com/api/users', { status: 200 });
 It is possible to define mocked response in function of incoming request. This is useful if you need to use some information from request URL or body in the response:
 
 ```typescript
-mocketeer.mockGET('/api/users/:userId', (request) => {
+mocketeer.mock('/api/users/:userId', (request) => {
     return {
         status: 200,
         body: {
@@ -328,7 +324,6 @@ Respond all requests of matching `matcher` with provided `response`.
     -   `method: string` - any valid HTTP method
     -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
     -   `query?: object` object literal which accepts strings and arrays of strings as values, transformed to queryString
-    -   `method: string` -
 -   `response` _(object | function)_ content of mocked response. Can be a object or a function returning object with following properties:
     -   `status: number`
     -   `headers?: object`
@@ -342,7 +337,6 @@ Respond all requests of matching `matcher` with provided `response`.
 Instance of `Mock`.
 
 ```typescript
-// Match by query parameters passed in query object
 mocketeer.mock(
     {
         method: 'GET',
@@ -354,6 +348,7 @@ mocketeer.mock(
     },
     {
         status: 200,
+        headers: {...},
         body: [{...}],
     }
 );
@@ -366,7 +361,6 @@ Shorthand method for `mocketeer.mock`. Matches all request with `HTTP_METHOD` me
 -   `matcher` _(string | object)_ URL string or object with following properties:
     -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
     -   `query?: object` object literal which accepts strings and arrays of strings as values, transformed to queryString
-    -   `method: string` -
 -   `response` _(object | function)_ content of mocked response. Can be a object or a function returning object with following properties:
     -   `status: number`
     -   `headers?: object`
@@ -379,9 +373,9 @@ Shorthand method for `mocketeer.mock`. Matches all request with `HTTP_METHOD` me
 
 ```typescript
 // Basic example
-mocketeer.mockGET('/api/clients', {
-    status: 200,
-    body: [{...}],
+mocketeer.mockPOST('/api/clients', {
+    status: 201,
+    body: {...},
 });
 ```
 
@@ -394,25 +388,8 @@ mocketeer.mockGET('/api/clients?city=Bristol&limit=10', {
 ```
 
 ```typescript
-// Match by query parameters passed in query object
-mocketeer.mockGET(
-    {
-        url: '/api/clients',
-        query: {
-            city: 'Bristol',
-            limit: 10,
-        },
-    },
-    {
-        status: 200,
-        body: [{...}],
-    }
-);
-```
-
-```typescript
 // Match by path params
-mocketeer.mockPUT('/api/clients/:clientId', {
+mocketeer.mockGET('/api/clients/:clientId', {
     status: 200,
     body: [{...}],
 });
