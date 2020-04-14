@@ -1,4 +1,4 @@
-import playwright from 'playwright';
+import playwright from 'playwright-core';
 import {
     BrowserController,
     BrowserRequestHandler,
@@ -13,11 +13,11 @@ export class PlaywrightController implements BrowserController {
     constructor(private readonly page: playwright.Page) {}
 
     async startInterception(onRequest: BrowserRequestHandler) {
-        this.page.route('**/*', (request: playwright.Request) => {
+        this.page.route('**/*', (route: playwright.Route) => {
             onRequest(
-                this.toBrowserRequest(request),
-                data => this.respond(request, data),
-                () => request.continue()
+                this.toBrowserRequest(route.request()),
+                data => this.respond(route, data),
+                () => this.skip(route)
             );
         });
     }
@@ -34,7 +34,7 @@ export class PlaywrightController implements BrowserController {
             url: request.url(),
             body: tryJsonParse(request.postData()),
             method: request.method(),
-            headers: request.headers() || {},
+            headers: (request.headers() as Record<string, string>) || {},
             path: pathname,
             hostname: `${protocol}//${host}`,
             query: query,
@@ -42,8 +42,8 @@ export class PlaywrightController implements BrowserController {
         };
     }
 
-    private async respond(request: playwright.Request, response: ResponseData) {
-        await request.fulfill({
+    private async respond(route: playwright.Route, response: ResponseData) {
+        await route.fulfill({
             headers: response.headers || {},
             status: response.status,
             body: response.body ? response.body : '',
@@ -51,6 +51,10 @@ export class PlaywrightController implements BrowserController {
                 ? response.headers['content-type']
                 : 'application/json',
         });
+    }
+
+    private async skip(route: playwright.Route) {
+        await route.continue();
     }
 
     /**

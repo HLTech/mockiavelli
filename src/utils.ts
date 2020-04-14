@@ -1,4 +1,4 @@
-import { HttpMethod, RequestMatcher } from './types';
+import { HttpMethod, RequestMatcher, ShorthandRequestMatcher } from './types';
 import { BrowserRequest } from './controllers/BrowserController';
 
 export function tryJsonParse(data: any): any | undefined {

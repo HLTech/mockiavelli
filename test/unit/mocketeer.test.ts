@@ -3,7 +3,7 @@ import { createMockPage } from './fixtures/page';
 jest.mock('../../src/mock');
 jest.mock('../../src/controllers/BrowserControllerFactory', () => ({
     BrowserControllerFactory: class {
-        static getForPage = jest.fn().mockReturnValue({
+        static createForPage = jest.fn().mockReturnValue({
             startInterception: jest.fn(),
         });
     },

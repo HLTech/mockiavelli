@@ -1,17 +1,19 @@
 import * as puppeteer from 'puppeteer';
-import playwright from 'playwright';
+import playwright from 'playwright-core';
 import { PlaywrightController } from './PlaywrightController';
 import { PuppeteerController } from './PuppeteerController';
 import { BrowserController } from './BrowserController';
 
+/**
+ * Type of supported page objects
+ */
 export type BrowserPage = puppeteer.Page | playwright.Page;
 
 export class BrowserControllerFactory {
     /**
-     * Return instantiated Playwright or Puppeteer controller
-     * corresponding to provided page object
+     * Returns instance of BrowserController corresponding to provided page
      */
-    public static getForPage(page: BrowserPage): BrowserController {
+    public static createForPage(page: BrowserPage): BrowserController {
         if (this.isPlaywrightPage(page)) {
             return new PlaywrightController(page);
         } else if (this.isPuppeteerPage(page)) {

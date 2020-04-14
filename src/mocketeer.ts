@@ -47,7 +47,7 @@ export class Mocketeer {
         options: Partial<MocketeerOptions> = {}
     ): Promise<Mocketeer> {
         const mocketeer = new Mocketeer(options);
-        const controller = BrowserControllerFactory.getForPage(page);
+        const controller = BrowserControllerFactory.createForPage(page);
         await mocketeer.activate(controller);
         return mocketeer;
     }

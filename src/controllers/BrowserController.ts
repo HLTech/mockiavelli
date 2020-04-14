@@ -1,5 +1,5 @@
 /**
- * Interface through with Mocketeer communicates with different browser automation libraries
+ * Interface used by Mocketeer to communicate with browser automation libraries
  */
 export interface BrowserController {
     startInterception(onRequest: BrowserRequestHandler): Promise<void>;
@@ -15,7 +15,7 @@ export type BrowserRequestHandler = (
 ) => void;
 
 /**
- * Data of intercepted browser request
+ * Represents data of intercepted browser request
  */
 export interface BrowserRequest {
     type: BrowserRequestType;
@@ -29,6 +29,9 @@ export interface BrowserRequest {
     sourceOrigin: string;
 }
 
+/**
+ * Content of response
+ */
 export interface ResponseData {
     status: number;
     body?: Buffer | string;

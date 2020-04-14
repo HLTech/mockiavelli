@@ -1,26 +1,19 @@
-import { Page } from 'puppeteer';
-import playwright from 'playwright';
-
-export function makeRequestFactory(page: Page | playwright.Page) {
-    return async function(
-        method: string,
-        url: string,
-        headers?: Record<string, string>,
-        body?: any,
-        options?: { waitForRequestEnd: boolean }
-    ): Promise<{ status: number; headers: Record<string, string>; body: any }> {
-        // @ts-ignore
-        return page.evaluate(makeRequest, url, method, headers, body, options);
-    };
+interface MakeRequestParams {
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    body: any;
+    options?: { waitForRequestEnd: boolean };
 }
 
-function makeRequest(
-    url: string,
-    method: string,
-    headers: Record<string, string>,
-    body,
-    options: { waitForRequestEnd: boolean } = { waitForRequestEnd: true }
-) {
+export function makeRequest(params: MakeRequestParams) {
+    const {
+        url,
+        method,
+        headers,
+        body,
+        options = { waitForRequestEnd: true },
+    } = params;
     function headersToObject(headers: Headers): Record<string, string> {
         const headerObj = {};
         const keyVals = [...headers.entries()];

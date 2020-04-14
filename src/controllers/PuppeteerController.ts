@@ -14,14 +14,14 @@ export class PuppeteerController implements BrowserController {
         await this.page.setRequestInterception(true);
         this.page.on('request', request => {
             onRequest(
-                this.getRequestData(request),
+                this.toBrowserRequest(request),
                 response => request.respond(response),
                 () => request.continue()
             );
         });
     }
 
-    private getRequestData(request: Request): BrowserRequest {
+    private toBrowserRequest(request: Request): BrowserRequest {
         // TODO find a better alternative for url.parse
         const { pathname = '', query, protocol, host } = parse(
             request.url(),

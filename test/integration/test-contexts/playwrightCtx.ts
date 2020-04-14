@@ -1,21 +1,23 @@
-import playwright from 'playwright';
+import { chromium, BrowserContext, Page, Browser } from 'playwright-chromium';
 import { Mocketeer } from '../../../src';
-import { makeRequestFactory } from '../test-helpers/make-request-factory';
+import { makeRequest } from '../test-helpers/make-request';
 
 const PORT = 9000;
 
-export function setupPlaywrightCtx() {
-    let browser: playwright.Browser;
-    let context: playwright.BrowserContext;
+export interface PlaywrightTestCtx {
+    page?: Page;
+    mocketeer?: Mocketeer;
+    makeRequest?: ReturnType<typeof makeRequestFactory>;
+}
 
-    const testCtx: {
-        page?: playwright.Page;
-        mocketeer?: Mocketeer;
-        makeRequest?: ReturnType<typeof makeRequestFactory>;
-    } = {};
+export function setupPlaywrightCtx(): PlaywrightTestCtx {
+    let browser: Browser;
+    let context: BrowserContext;
+
+    const testCtx: PlaywrightTestCtx = {};
 
     beforeAll(async () => {
-        browser = await playwright.chromium.launch({
+        browser = await chromium.launch({
             headless: true,
             devtools: false,
             args: ['--no-sandbox'],
@@ -40,4 +42,21 @@ export function setupPlaywrightCtx() {
     });
 
     return testCtx;
+}
+
+function makeRequestFactory(page: Page) {
+    return (
+        method: string,
+        url: string,
+        headers?: Record<string, string>,
+        body?: any,
+        options?: { waitForRequestEnd: boolean }
+    ): ReturnType<typeof makeRequest> =>
+        page.evaluate(makeRequest, {
+            url,
+            method,
+            headers,
+            body,
+            options,
+        });
 }
