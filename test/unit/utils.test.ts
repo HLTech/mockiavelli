@@ -3,6 +3,7 @@ import {
     addMockByPriority,
     createRequestMatcher,
     printResponse,
+    getOrigin,
 } from '../../src/utils';
 import { createRestMock } from './fixtures/request';
 
@@ -121,4 +122,18 @@ test('printResponse()', () => {
             Buffer.from(JSON.stringify({ foo: 'bar' }))
         )
     ).toMatchSnapshot();
+});
+
+test.each([
+    ['http://example.com/endpoint', 'http://example.com'],
+    ['https://example.com/endpoint', 'https://example.com'],
+    ['http://example.com/', 'http://example.com'],
+    ['http://example.com', 'http://example.com'],
+    ['https://example.com:8080', 'https://example.com:8080'],
+    ['http://user:pass@example.com', 'http://example.com'],
+    ['', ''],
+    [undefined, ''],
+    ['not_ValiD_URL!', ''],
+])('getOrigin(%s) returns %s', (url, expectedOrigin) => {
+    expect(getOrigin(url as string)).toBe(expectedOrigin);
 });

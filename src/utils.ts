@@ -1,10 +1,8 @@
 import { HttpMethod, RequestMatcher, ShorthandRequestMatcher } from './types';
 import { BrowserRequest } from './controllers/BrowserController';
+import { parse } from 'url';
 
 export function tryJsonParse(data: any): any | undefined {
-    if (!data) {
-        return;
-    }
     try {
         return JSON.parse(data);
     } catch (e) {
@@ -102,11 +100,11 @@ export function getCorsHeaders(
  * because they make request hang indefinitely in puppeteer
  */
 export function sanitizeHeaders(
-    headers: Record<string, string>
+    headers: Record<string, string | undefined>
 ): Record<string, string> {
     return Object.keys(headers).reduce<Record<string, string>>((acc, key) => {
         if (Boolean(headers[key])) {
-            acc[key] = headers[key];
+            acc[key] = headers[key] as string;
         }
         return acc;
     }, {});
@@ -120,4 +118,12 @@ export function printResponse(
     const headersStr = JSON.stringify(headers);
     const bodyStr = body.toString('utf8');
     return `status=${status} headers=${headersStr} body=${bodyStr}`;
+}
+
+export function getOrigin(originUrl?: string) {
+    const { protocol, host } = parse(originUrl ?? '');
+    if (protocol && host) {
+        return `${protocol}//${host}`;
+    }
+    return '';
 }

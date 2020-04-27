@@ -158,6 +158,8 @@ export class Mocketeer {
                 // A bug in puppeteer causes stalled response when body is equal to "" or undefined.
                 // Providing response as Buffer fixes it.
                 let body: Buffer;
+                let contentType: string | undefined;
+
                 if (typeof response.body === 'string') {
                     body = Buffer.from(response.body);
                 } else if (
@@ -168,6 +170,7 @@ export class Mocketeer {
                 } else {
                     try {
                         body = Buffer.from(JSON.stringify(response.body));
+                        contentType = 'application/json; charset=utf-8';
                     } catch (e) {
                         // Response body in either not JSON-serializable or something else
                         // that cannot be handled. In this case we throw an error
@@ -179,10 +182,7 @@ export class Mocketeer {
                 // Set default value of Content-Type header
                 const headers = sanitizeHeaders({
                     'content-length': String(body.length),
-                    'content-type':
-                        body.length > 0
-                            ? `application/json; charset=utf-8`
-                            : '',
+                    'content-type': contentType,
                     ...getCorsHeaders(request),
                     ...response.headers,
                 });

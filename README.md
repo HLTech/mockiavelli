@@ -58,7 +58,10 @@ To define response for a given request, call `mocketeer.mock` with request URL a
 ```typescript
 const getUsersMock = mocketeer.mockGET('/api/users', {
     status: 200,
-    body: [{ id: 123, name: 'John Doe' }, { id: 456, name: 'Mary Jane' }],
+    body: [
+        { id: 123, name: 'John Doe' },
+        { id: 456, name: 'Mary Jane' },
+    ],
 });
 ```
 
@@ -68,7 +71,7 @@ Now every `GET /api/users` request issued from this page will receive `200 OK` r
 await page.click('.fetch-users'); // trigger request
 await getUsersMock.waitForRequest(); // wait for mock to respond the request
 
-const users = await page.$('.user-list', el => el.textContent); // get rendered elements
+const users = await page.$('.user-list', (el) => el.textContent); // get rendered elements
 console.log(users); // => 123 John Doe, 456 Mary Jane
 ```
 
@@ -148,7 +151,7 @@ Request can be matched by:
 Path parameters in the URL can be matched using `:param` notation. When a request is made, the actual params are exposed in `request.params`:
 
 ```js
-const getUserMock = mocketeer.mock('/api/users/:userId', { status: 200 });
+const getUserMock = mocketeer.mockGET('/api/users/:userId', { status: 200 });
 
 // GET /api/users/1234 => 200
 // GET /api/users => 404
@@ -163,17 +166,17 @@ console.log(await getUserMock.waitForRequest());
 Mocketeer supports matching requests by query parameters. All defined params are then required to match the request, but excess params are ignored:
 
 ```
-mocketeer.mock('/api/users?status=active&sort=asc', {status: 200})
+mocketeer.mockGET('/api/users?city=Warsaw&sort=asc', {status: 200})
 
-// GET /api/users?status=active&sort=asc            => 200
-// GET /api/users?status=active&sort=asc&limit=10   => 200
-// GET /api/users?status=active                     => 404
+// GET /api/users?city=Warsaw&sort=asc            => 200
+// GET /api/users?city=Warsaw&sort=asc&limit=10   => 200
+// GET /api/users?city=Warsaw                     => 404
 ```
 
 It is also possible to define query parameters as object. This notation works great for matching array query params:
 
 ```
-mocketeer.mock({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
+mocketeer.mockGET({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
 
 // GET /api/users?status=active&status=blocked  => 200
 ```
@@ -201,7 +204,7 @@ expect(postUserRequest.body).toBe({
 By default mock are persistent, meaning that they will respond to multiple matching requests:
 
 ```
-mocketeer.mock('/api/users', {status: 200});
+mocketeer.mockGET('/api/users', {status: 200});
 
 // GET /api/users => 200
 // GET /api/users => 200
@@ -210,7 +213,7 @@ mocketeer.mock('/api/users', {status: 200});
 To change this behaviour and disable mock once it matched a request use `once` option:
 
 ```
-mocketeer.mock('/api/users', {status: 200}, {once: true});
+mocketeer.mockGET('/api/users', {status: 200}, {once: true});
 
 // GET /api/users => 200
 // GET /api/users => 404
@@ -221,12 +224,12 @@ mocketeer.mock('/api/users', {status: 200}, {once: true});
 Mocks are matched in the "newest first" order. To override previously defined mock simply define new one:
 
 ```
-mocketeer.mock('/api/users', {status: 200});
-mocketeer.mock('/api/users', {status: 401});
+mocketeer.mockGET('/api/users', {status: 200});
+mocketeer.mockGET('/api/users', {status: 401});
 
 // GET /api/users => 401
 
-mocketeer.mock('/api/users', {status: 500})
+mocketeer.mockGET('/api/users', {status: 500})
 
 // GET /api/users => 500
 ```
@@ -236,9 +239,9 @@ mocketeer.mock('/api/users', {status: 500})
 To change the default "newest first" matching order, you define mocks with combination of `once` and `priority` parameters:
 
 ```
-mocketeer.mock('/api/users', {status: 404}, {once: true, priority: 10});
-mocketeer.mock('/api/users', {status: 500}, {once: true, priority: 5});
-mocketeer.mock('/api/users', {status: 200});
+mocketeer.mockGET('/api/users', {status: 404}, {once: true, priority: 10});
+mocketeer.mockGET('/api/users', {status: 500}, {once: true, priority: 5});
+mocketeer.mockGET('/api/users', {status: 200});
 
 // GET /api/users => 404
 // GET /api/users => 500
@@ -250,10 +253,10 @@ mocketeer.mock('/api/users', {status: 200});
 Mocketeer has built-in support for cross-origin requests. If application and API are not on the same origin (domain) just provide the full request URL to `mocketeer.mock<HTTP_METHOD>`
 
 ```typescript
-mocketeer.mock('http://api.example.com/api/users', { status: 200 });
+mocketeer.mockGET('http://api.example.com/api/users', { status: 200 });
 
 // GET http://api.example.com/api/users => 200
-// GET http://app.example.com/api/users => 404
+// GET http://another-domain.example.com/api/users => 404
 ```
 
 ### Dynamic responses <a name="dynamic-responses"/>
@@ -261,7 +264,7 @@ mocketeer.mock('http://api.example.com/api/users', { status: 200 });
 It is possible to define mocked response in function of incoming request. This is useful if you need to use some information from request URL or body in the response:
 
 ```typescript
-mocketeer.mock('/api/users/:userId', (request) => {
+mocketeer.mockGET('/api/users/:userId', (request) => {
     return {
         status: 200,
         body: {
@@ -290,7 +293,7 @@ await Mocketeer.setup(page, {debug: true});
 
 #### `Mocketeer.setup(page, options): Promise<Mocketeer>`
 
-Factory method used to set-up request mocking on provided Puppeteer or Playwright Page. It creates and returns an instance of Mocketeer
+Factory method used to set-up request mocking on provided Puppeteer or Playwright Page. It creates and returns an instance of [Mocketeer](#Mocketeer)
 
 Once created, mocketeer will intercept all requests made by the page and match them with defined mocks.
 
@@ -334,7 +337,9 @@ Respond all requests of matching `matcher` with provided `response`.
 
 ###### Returns
 
-Instance of `Mock`.
+Instance of [`Mock`](#Mock).
+
+###### Example
 
 ```typescript
 mocketeer.mock(
@@ -358,16 +363,24 @@ mocketeer.mock(
 
 Shorthand method for `mocketeer.mock`. Matches all request with `HTTP_METHOD` method. In addition to matcher object, it also accepts URL string as first argument.
 
--   `matcher` _(string | object)_ URL string or object with following properties:
+-   `matcher: (string | object)` URL string or object with following properties:
     -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
     -   `query?: object` object literal which accepts strings and arrays of strings as values, transformed to queryString
--   `response` _(object | function)_ content of mocked response. Can be a object or a function returning object with following properties:
+-   `response: (object | function)` content of mocked response. Can be a object or a function returning object with following properties:
     -   `status: number`
     -   `headers?: object`
     -   `body?: any`
--   `options?` _(object)_ optional config object
-    -   `prority` _(number)_ when intercepted request matches multiple mock, mocketeer will use the one with highest priority
-    -   `once` _(boolean)_ _(default: false)_ when set to true intercepted request will be matched only once
+-   `options?: object` optional config object
+    -   `prority?: number` when intercepted request matches multiple mock, mocketeer will use the one with highest priority. Default: `0`
+    -   `once: boolean` when set to true intercepted request will be matched only once. Default: `false`
+
+Available methods are:
+
+-   `mocketeer.mockGET`
+-   `mocketeer.mockPOST`
+-   `mocketeer.mockDELETE`
+-   `mocketeer.mockPUT`
+-   `mocketeer.mockPATCH`
 
 ###### Examples
 
@@ -426,7 +439,6 @@ Promise resolved with `MatchedRequest` - object representing request that matche
 -   `path: string` - request's url path, without query string. Example: `'/api/clients'`
 -   `query: object` - request's query object, as returned from [`querystring.parse`](https://nodejs.org/docs/latest/api/querystring.html#querystring_querystring_parse_str_sep_eq_options). Example: `{name: 'foo'}`
 -   `body: any` - JSON deserialized request's post body, if any
--   `rawBody: string` undefined)\_ - raw request's post body, if any
 -   `type: string` - request's resource type. Possible values are `xhr` and `fetch`
 -   `params: object` - object with path parameters specified in `url`
 

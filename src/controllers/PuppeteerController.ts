@@ -5,17 +5,17 @@ import {
     BrowserRequest,
     BrowserRequestHandler,
 } from './BrowserController';
-import { tryJsonParse } from '../utils';
+import { getOrigin, tryJsonParse } from '../utils';
 
 export class PuppeteerController implements BrowserController {
     constructor(private readonly page: Page) {}
 
     async startInterception(onRequest: BrowserRequestHandler) {
         await this.page.setRequestInterception(true);
-        this.page.on('request', request => {
+        this.page.on('request', (request) => {
             onRequest(
                 this.toBrowserRequest(request),
-                response => request.respond(response),
+                (response) => request.respond(response),
                 () => request.continue()
             );
         });
@@ -45,9 +45,6 @@ export class PuppeteerController implements BrowserController {
      * Obtain request origin url from originating frame url
      */
     private getRequestOrigin(request: Request) {
-        const originFrame = request.frame();
-        const originFrameUrl = originFrame ? originFrame.url() : '';
-        const { protocol, host } = parse(originFrameUrl);
-        return `${protocol}//${host}`;
+        return getOrigin(request.frame()?.url());
     }
 }

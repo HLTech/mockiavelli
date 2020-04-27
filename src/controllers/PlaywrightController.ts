@@ -6,7 +6,7 @@ import {
     BrowserRequest,
     BrowserRequestType,
 } from './BrowserController';
-import { tryJsonParse } from '../utils';
+import { getOrigin, tryJsonParse } from '../utils';
 import { parse } from 'url';
 
 export class PlaywrightController implements BrowserController {
@@ -16,7 +16,7 @@ export class PlaywrightController implements BrowserController {
         this.page.route('**/*', (route: playwright.Route) => {
             onRequest(
                 this.toBrowserRequest(route.request()),
-                data => this.respond(route, data),
+                (data) => this.respond(route, data),
                 () => this.skip(route)
             );
         });
@@ -47,9 +47,7 @@ export class PlaywrightController implements BrowserController {
             headers: response.headers || {},
             status: response.status,
             body: response.body ? response.body : '',
-            contentType: response.headers
-                ? response.headers['content-type']
-                : 'application/json',
+            contentType: response.headers?.['content-type'],
         });
     }
 
@@ -60,10 +58,7 @@ export class PlaywrightController implements BrowserController {
     /**
      * Obtain request origin url from originating frame url
      */
-    private getRequestOrigin(request: playwright.Request) {
-        const originFrame = request.frame();
-        const originFrameUrl = originFrame ? originFrame.url() : '';
-        const { protocol, host } = parse(originFrameUrl);
-        return `${protocol}//${host}`;
+    private getRequestOrigin(request: playwright.Request): string {
+        return getOrigin(request.frame().url());
     }
 }
