@@ -24,10 +24,7 @@ export class PlaywrightController implements BrowserController {
 
     private toBrowserRequest(request: playwright.Request): BrowserRequest {
         // TODO find a better alternative for url.parse
-        const { pathname = '', query, protocol, host } = parse(
-            request.url(),
-            true
-        );
+        const { pathname, query, protocol, host } = parse(request.url(), true);
 
         return {
             type: request.resourceType() as BrowserRequestType,
@@ -35,7 +32,7 @@ export class PlaywrightController implements BrowserController {
             body: tryJsonParse(request.postData()),
             method: request.method(),
             headers: (request.headers() as Record<string, string>) || {},
-            path: pathname,
+            path: pathname ?? '',
             hostname: `${protocol}//${host}`,
             query: query,
             sourceOrigin: this.getRequestOrigin(request),

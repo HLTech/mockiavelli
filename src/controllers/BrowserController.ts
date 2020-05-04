@@ -1,3 +1,5 @@
+import { QueryObject } from '../types';
+
 /**
  * Interface used by Mockiavelli to communicate with browser automation libraries
  */
@@ -25,7 +27,7 @@ export interface BrowserRequest {
     body: any;
     path: string;
     hostname: string;
-    query: Record<string, string | string[]>;
+    query: QueryObject;
     sourceOrigin: string;
 }
 

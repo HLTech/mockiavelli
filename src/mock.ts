@@ -195,18 +195,15 @@ export class Mock {
 
     private parseMatcher(matcher: RequestMatcher) {
         // TODO find a better alternative for url.parse
-        const { protocol, host, pathname = '', query } = parse(
-            matcher.url,
-            true
-        );
+        const { protocol, host, pathname, query } = parse(matcher.url, true);
         const hasHostname = protocol && host;
 
         return {
             method: matcher.method,
             hostname: hasHostname ? `${protocol}//${host}` : undefined,
             query: matcher.query ? matcher.query : query,
-            path: pathname,
-            pathMatch: match<PathParameters>(pathname),
+            path: pathname ?? '',
+            pathMatch: match<PathParameters>(pathname ?? ''),
             body: matcher.body,
         };
     }

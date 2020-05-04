@@ -1,4 +1,4 @@
-export type QueryObject = Record<string, string | string[]>;
+export type QueryObject = Record<string, string | string[] | undefined>;
 
 export interface RequestMatcher {
     method: HttpMethod;
