@@ -24,32 +24,32 @@ import {
     BrowserControllerFactory,
 } from './controllers/BrowserControllerFactory';
 
-const debug = dbg('mocketeer:main');
+const debug = dbg('mockiavelli:main');
 
 const interceptedTypes: BrowserRequestType[] = ['xhr', 'fetch'];
 
-export interface MocketeerOptions {
+export interface MockiavelliOptions {
     debug: boolean;
 }
 
-export class Mocketeer {
+export class Mockiavelli {
     private mocks: Mock[] = [];
 
-    constructor(options: Partial<MocketeerOptions> = {}) {
+    constructor(options: Partial<MockiavelliOptions> = {}) {
         if (options.debug) {
-            dbg.enable('mocketeer:*');
+            dbg.enable('mockiavelli:*');
         }
         debug('Initialized');
     }
 
     public static async setup(
         page: BrowserPage,
-        options: Partial<MocketeerOptions> = {}
-    ): Promise<Mocketeer> {
-        const mocketeer = new Mocketeer(options);
+        options: Partial<MockiavelliOptions> = {}
+    ): Promise<Mockiavelli> {
+        const instance = new Mockiavelli(options);
         const controller = BrowserControllerFactory.createForPage(page);
-        await mocketeer.activate(controller);
-        return mocketeer;
+        await instance.activate(controller);
+        return instance;
     }
 
     private async activate(controller: BrowserController): Promise<void> {

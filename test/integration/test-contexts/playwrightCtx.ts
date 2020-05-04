@@ -1,12 +1,12 @@
 import { chromium, BrowserContext, Page, Browser } from 'playwright-chromium';
-import { Mocketeer } from '../../../src';
+import { Mockiavelli } from '../../../src';
 import { makeRequest } from '../test-helpers/make-request';
 
 const PORT = 9000;
 
 export interface PlaywrightTestCtx {
     page?: Page;
-    mocketeer?: Mocketeer;
+    mockiavelli?: Mockiavelli;
     makeRequest?: ReturnType<typeof makeRequestFactory>;
 }
 
@@ -33,7 +33,7 @@ export function setupPlaywrightCtx(): PlaywrightTestCtx {
         // Setup new page (tab)
         testCtx.page = await context.newPage();
         await testCtx.page.goto(`http://localhost:${PORT}`);
-        testCtx.mocketeer = await Mocketeer.setup(testCtx.page);
+        testCtx.mockiavelli = await Mockiavelli.setup(testCtx.page);
         testCtx.makeRequest = makeRequestFactory(testCtx.page);
     });
 

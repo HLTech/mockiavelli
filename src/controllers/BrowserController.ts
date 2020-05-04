@@ -1,5 +1,5 @@
 /**
- * Interface used by Mocketeer to communicate with browser automation libraries
+ * Interface used by Mockiavelli to communicate with browser automation libraries
  */
 export interface BrowserController {
     startInterception(onRequest: BrowserRequestHandler): Promise<void>;

@@ -1,8 +1,12 @@
-# Mocketeer
+<p align="center">
+    <img src="./mockiavelli-logo.png" alt="Mockiavelli Logo" width="256">
+</p>
 
-Mocketeer is HTTP request mocking library for [Puppeteer](http://pptr.dev/) and [Playwright](https://github.com/microsoft/playwright/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
+---
 
-## Main features
+**Mockiavelli is HTTP request mocking library** for [Puppeteer](http://pptr.dev/) and [Playwright](https://github.com/microsoft/playwright/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
+
+Main features
 
 -   mock network requests directly in the test case
 -   inspect and assert requests payload
@@ -29,34 +33,40 @@ Mocketeer is HTTP request mocking library for [Puppeteer](http://pptr.dev/) and 
     -   [Dynamic responses](#dynamic-responses)
     -   [Debug mode](#debug-mode)
 -   [API](#api)
-    -   [`Mocketeer`](#Mocketeer)
+    -   [`Mockiavelli`](#Mockiavelli)
     -   [`Mock`](#Mock)
 
 ## Installation <a name="installation"/>
 
 ```
-yarn add @hltech/mocketeer
+npm install mockiavelli
 ```
 
--   Mocketeer requires [Puppeteer](https://pptr.dev/) or [Playwright](https://www.npmjs.com/package/playwright/) which need to be installed separately
+or if you are using yarn:
+
+```
+yarn add mockiavelli
+```
+
+-   Mockiavelli requires [Puppeteer](https://pptr.dev/) or [Playwright](https://www.npmjs.com/package/playwright/) which need to be installed separately.
 -   If you're using [jest](jestjs.io/) we also recommend to install [jest-puppeteer](https://github.com/smooth-code/jest-puppeteer) or [jest-playwright](https://www.npmjs.com/package/jest-playwright-preset)
 
 ## Getting started <a name="getting-started"/>
 
-To start using Mocketeer, you need to instantiate `Mocketeer` class by providing it an instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
+To start using Mockiavelli, you need to instantiate `Mockiavelli` class by providing it an instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
 
 ```typescript
-const { Mocketeer } = require('@hltech/mocketeer');
+const { Mockiavelli } = require('mockiavelli');
 
-const mocketeer = await Mocketeer.setup(page);
+const mockiavelli = await Mockiavelli.setup(page);
 ```
 
-Mocketeer now intercepts all HTTP requests issued from this page.
+Mockiavelli now intercepts all HTTP requests issued from this page.
 
-To define response for a given request, call `mocketeer.mock` with request URL and response object:
+To define response for a given request, call `mockiavelli.mock<HTTP_METHOD>` with request URL and response object:
 
 ```typescript
-const getUsersMock = mocketeer.mockGET('/api/users', {
+const getUsersMock = mockiavelli.mockGET('/api/users', {
     status: 200,
     body: [
         { id: 123, name: 'John Doe' },
@@ -79,20 +89,20 @@ console.log(users); // => 123 John Doe, 456 Mary Jane
 
 The example below is a [Jest](https://jestjs.io/en) test case (with [jest-puppeteer preset](https://github.com/smooth-code/jest-puppeteer)) verifies a sign-up form in a locally running application.
 
-Mocketeer is used to mock and assert request that the app makes to REST API upon form submission.
+Mockiavelli is used to mock and assert request that the app makes to REST API upon form submission.
 
 ```js
-const { Mocketeer } = require('@hltech/mocketeer');
+const { Mockiavelli } = require('mockiavelli');
 
 test('Sign-up form', async () => {
-    // Enable Mocketeer on an instance of puppeteer Page provided by jest-puppeteer
-    const mocketeer = await Mocketeer.setup(page);
+    // Enable Mockiavelli on an instance of puppeteer Page provided by jest-puppeteer
+    const mockiavelli = await Mockiavelli.setup(page);
 
     // Navigate to application
     await page.goto('http://localhost:8000/');
 
     // Configure mocked response
-    const postUserMock = mocketeer.mockPOST('/api/user', {
+    const postUserMock = mockiavelli.mockPOST('/api/user', {
         status: 201,
         body: {
             userId: '123',
@@ -122,24 +132,24 @@ test('Sign-up form', async () => {
 
 Request can be matched by:
 
--   providing URL string to `mocketeer.mock<HTTP_METHOD>` method:
+-   providing URL string to `mockiavelli.mock<HTTP_METHOD>` method:
 
     ```
-    mocketeer.mockGET('/api/users?age=30', {status: 200, body: [....]})
+    mockiavelli.mockGET('/api/users?age=30', {status: 200, body: [....]})
     ```
 
--   providing matcher object to `mocketeer.mock<HTTP_METHOD>` method
+-   providing matcher object to `mockiavelli.mock<HTTP_METHOD>` method
 
     ```
-    mocketeer.mockGET({
+    mockiavelli.mockGET({
         url: '/api/users',
         query: { age: '30' }
     }, {status: 200, body: [....]})
     ```
 
--   providing full matcher object `mocketeer.mock` method
+-   providing full matcher object `mockiavelli.mock` method
     ```
-    mocketeer.mock({
+    mockiavelli.mock({
         method: 'GET'
         url: '/api/users',
         query: { age: '30' }
@@ -151,7 +161,7 @@ Request can be matched by:
 Path parameters in the URL can be matched using `:param` notation. When a request is made, the actual params are exposed in `request.params`:
 
 ```js
-const getUserMock = mocketeer.mockGET('/api/users/:userId', { status: 200 });
+const getUserMock = mockiavelli.mockGET('/api/users/:userId', { status: 200 });
 
 // GET /api/users/1234 => 200
 // GET /api/users => 404
@@ -163,10 +173,10 @@ console.log(await getUserMock.waitForRequest());
 
 ### Query params matching <a name="query-parameters-matching"/>
 
-Mocketeer supports matching requests by query parameters. All defined params are then required to match the request, but excess params are ignored:
+Mockiavelli supports matching requests by query parameters. All defined params are then required to match the request, but excess params are ignored:
 
 ```
-mocketeer.mockGET('/api/users?city=Warsaw&sort=asc', {status: 200})
+mockiavelli.mockGET('/api/users?city=Warsaw&sort=asc', {status: 200})
 
 // GET /api/users?city=Warsaw&sort=asc            => 200
 // GET /api/users?city=Warsaw&sort=asc&limit=10   => 200
@@ -176,19 +186,19 @@ mocketeer.mockGET('/api/users?city=Warsaw&sort=asc', {status: 200})
 It is also possible to define query parameters as object. This notation works great for matching array query params:
 
 ```
-mocketeer.mockGET({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
+mockiavelli.mockGET({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
 
 // GET /api/users?status=active&status=blocked  => 200
 ```
 
 ### Request assertion <a name="request-assertion"/>
 
-`mocketeer.mock<HTTP_METHOD>` and `mocketeer.mock` methods return an instance of `Mock` class that records all requests the matched given mock.
+`mockiavelli.mock<HTTP_METHOD>` and `mockiavelli.mock` methods return an instance of `Mock` class that records all requests the matched given mock.
 
 To assert details of request made by application use async `mock.waitForRequest()` method. It will throw an error if no matching request was made.
 
 ```
-const postUsersMock = mocketeer.mockPOST('/api/users', {status: 200});
+const postUsersMock = mockiavelli.mockPOST('/api/users', {status: 200});
 
 // ... perform interaction on tested page ...
 
@@ -204,7 +214,7 @@ expect(postUserRequest.body).toBe({
 By default mock are persistent, meaning that they will respond to multiple matching requests:
 
 ```
-mocketeer.mockGET('/api/users', {status: 200});
+mockiavelli.mockGET('/api/users', {status: 200});
 
 // GET /api/users => 200
 // GET /api/users => 200
@@ -213,7 +223,7 @@ mocketeer.mockGET('/api/users', {status: 200});
 To change this behaviour and disable mock once it matched a request use `once` option:
 
 ```
-mocketeer.mockGET('/api/users', {status: 200}, {once: true});
+mockiavelli.mockGET('/api/users', {status: 200}, {once: true});
 
 // GET /api/users => 200
 // GET /api/users => 404
@@ -224,12 +234,12 @@ mocketeer.mockGET('/api/users', {status: 200}, {once: true});
 Mocks are matched in the "newest first" order. To override previously defined mock simply define new one:
 
 ```
-mocketeer.mockGET('/api/users', {status: 200});
-mocketeer.mockGET('/api/users', {status: 401});
+mockiavelli.mockGET('/api/users', {status: 200});
+mockiavelli.mockGET('/api/users', {status: 401});
 
 // GET /api/users => 401
 
-mocketeer.mockGET('/api/users', {status: 500})
+mockiavelli.mockGET('/api/users', {status: 500})
 
 // GET /api/users => 500
 ```
@@ -239,9 +249,9 @@ mocketeer.mockGET('/api/users', {status: 500})
 To change the default "newest first" matching order, you define mocks with combination of `once` and `priority` parameters:
 
 ```
-mocketeer.mockGET('/api/users', {status: 404}, {once: true, priority: 10});
-mocketeer.mockGET('/api/users', {status: 500}, {once: true, priority: 5});
-mocketeer.mockGET('/api/users', {status: 200});
+mockiavelli.mockGET('/api/users', {status: 404}, {once: true, priority: 10});
+mockiavelli.mockGET('/api/users', {status: 500}, {once: true, priority: 5});
+mockiavelli.mockGET('/api/users', {status: 200});
 
 // GET /api/users => 404
 // GET /api/users => 500
@@ -250,10 +260,10 @@ mocketeer.mockGET('/api/users', {status: 200});
 
 ### Cross-origin (cross-domain) API requests <a name="cors"/>
 
-Mocketeer has built-in support for cross-origin requests. If application and API are not on the same origin (domain) just provide the full request URL to `mocketeer.mock<HTTP_METHOD>`
+Mockiavelli has built-in support for cross-origin requests. If application and API are not on the same origin (domain) just provide the full request URL to `mockiavelli.mock<HTTP_METHOD>`
 
 ```typescript
-mocketeer.mockGET('http://api.example.com/api/users', { status: 200 });
+mockiavelli.mockGET('http://api.example.com/api/users', { status: 200 });
 
 // GET http://api.example.com/api/users => 200
 // GET http://another-domain.example.com/api/users => 404
@@ -264,7 +274,7 @@ mocketeer.mockGET('http://api.example.com/api/users', { status: 200 });
 It is possible to define mocked response in function of incoming request. This is useful if you need to use some information from request URL or body in the response:
 
 ```typescript
-mocketeer.mockGET('/api/users/:userId', (request) => {
+mockiavelli.mockGET('/api/users/:userId', (request) => {
     return {
         status: 200,
         body: {
@@ -281,21 +291,21 @@ mocketeer.mockGET('/api/users/:userId', (request) => {
 
 ### Debug mode <a name="debug-mode"/>
 
-Passing `{debug: true}` to `Mocketeer.setup` enables rich debugging in console:
+Passing `{debug: true}` to `Mockiavelli.setup` enables rich debugging in console:
 
 ```
-await Mocketeer.setup(page, {debug: true});
+await Mockiavelli.setup(page, {debug: true});
 ```
 
 ## API <a name="api"/>
 
-### `class Mocketeer` <a name="Mocketeer"/>
+### `class Mockiavelli` <a name="Mockiavelli"/>
 
-#### `Mocketeer.setup(page, options): Promise<Mocketeer>`
+#### `Mockiavelli.setup(page, options): Promise<Mockiavelli>`
 
-Factory method used to set-up request mocking on provided Puppeteer or Playwright Page. It creates and returns an instance of [Mocketeer](#Mocketeer)
+Factory method used to set-up request mocking on provided Puppeteer or Playwright Page. It creates and returns an instance of [Mockiavelli](#Mockiavelli)
 
-Once created, mocketeer will intercept all requests made by the page and match them with defined mocks.
+Once created, mockiavelli will intercept all requests made by the page and match them with defined mocks.
 
 If request does not match any mocks, it will be responded with `404 Not Found`.
 
@@ -310,14 +320,14 @@ If request does not match any mocks, it will be responded with `404 Not Found`.
 ```typescript
 const browser = await puppeteer.launch();
 const page = await browser.newPage();
-const mocketeer = await Mocketeer.setup(page);
+const mockiavelli = await Mockiavelli.setup(page);
 ```
 
 ###### Returns
 
-Promise resolved with instance of `Mocketeer` once request mocking is established.
+Promise resolved with instance of `Mockiavelli` once request mocking is established.
 
-#### `mocketeer.mock(matcher, response, options?)`
+#### `mockiavelli.mock(matcher, response, options?)`
 
 Respond all requests of matching `matcher` with provided `response`.
 
@@ -332,7 +342,7 @@ Respond all requests of matching `matcher` with provided `response`.
     -   `headers?: object`
     -   `body?: any`
 -   `options?` _(object)_ optional config object
-    -   `prority` _(number)_ when intercepted request matches multiple mock, mocketeer will use the one with highest priority
+    -   `prority` _(number)_ when intercepted request matches multiple mock, mockiavelli will use the one with highest priority
     -   `once` _(boolean)_ _(default: false)_ when set to true intercepted request will be matched only once
 
 ###### Returns
@@ -342,7 +352,7 @@ Instance of [`Mock`](#Mock).
 ###### Example
 
 ```typescript
-mocketeer.mock(
+mockiavelli.mock(
     {
         method: 'GET',
         url: '/api/clients',
@@ -359,9 +369,9 @@ mocketeer.mock(
 );
 ```
 
-#### `mocketeer.mock<HTTP_METHOD>(matcher, response, options?)`
+#### `mockiavelli.mock<HTTP_METHOD>(matcher, response, options?)`
 
-Shorthand method for `mocketeer.mock`. Matches all request with `HTTP_METHOD` method. In addition to matcher object, it also accepts URL string as first argument.
+Shorthand method for `mockiavelli.mock`. Matches all request with `HTTP_METHOD` method. In addition to matcher object, it also accepts URL string as first argument.
 
 -   `matcher: (string | object)` URL string or object with following properties:
     -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
@@ -371,22 +381,22 @@ Shorthand method for `mocketeer.mock`. Matches all request with `HTTP_METHOD` me
     -   `headers?: object`
     -   `body?: any`
 -   `options?: object` optional config object
-    -   `prority?: number` when intercepted request matches multiple mock, mocketeer will use the one with highest priority. Default: `0`
+    -   `prority?: number` when intercepted request matches multiple mock, mockiavelli will use the one with highest priority. Default: `0`
     -   `once: boolean` when set to true intercepted request will be matched only once. Default: `false`
 
 Available methods are:
 
--   `mocketeer.mockGET`
--   `mocketeer.mockPOST`
--   `mocketeer.mockDELETE`
--   `mocketeer.mockPUT`
--   `mocketeer.mockPATCH`
+-   `mockiavelli.mockGET`
+-   `mockiavelli.mockPOST`
+-   `mockiavelli.mockDELETE`
+-   `mockiavelli.mockPUT`
+-   `mockiavelli.mockPATCH`
 
 ###### Examples
 
 ```typescript
 // Basic example
-mocketeer.mockPOST('/api/clients', {
+mockiavelli.mockPOST('/api/clients', {
     status: 201,
     body: {...},
 });
@@ -394,7 +404,7 @@ mocketeer.mockPOST('/api/clients', {
 
 ```typescript
 // Match by query parameters passed in URL
-mocketeer.mockGET('/api/clients?city=Bristol&limit=10', {
+mockiavelli.mockGET('/api/clients?city=Bristol&limit=10', {
     status: 200,
     body: [{...}],
 });
@@ -402,7 +412,7 @@ mocketeer.mockGET('/api/clients?city=Bristol&limit=10', {
 
 ```typescript
 // Match by path params
-mocketeer.mockGET('/api/clients/:clientId', {
+mockiavelli.mockGET('/api/clients/:clientId', {
     status: 200,
     body: [{...}],
 });
@@ -410,7 +420,7 @@ mocketeer.mockGET('/api/clients/:clientId', {
 
 ```typescript
 // CORS requests
-mocketeer.mockGET('http://example.com/api/clients/', {
+mockiavelli.mockGET('http://example.com/api/clients/', {
     status: 200,
     body: [{...}],
 });
@@ -445,7 +455,7 @@ Promise resolved with `MatchedRequest` - object representing request that matche
 ###### Example
 
 ```typescript
-const patchClientMock = mocketeer.mockPATCH('/api/client/:clientId', { status: 200 });
+const patchClientMock = mockiavelli.mockPATCH('/api/client/:clientId', { status: 200 });
 
 // .. send request from page ...
 

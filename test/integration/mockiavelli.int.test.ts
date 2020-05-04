@@ -5,20 +5,15 @@ const PORT = 9000;
 
 const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
 
-type MocketeerHttpMethods =
-    | 'mockGET'
-    | 'mockPUT'
-    | 'mockPOST'
-    | 'mockDELETE'
-    | 'mockPATCH';
+type Methods = 'mockGET' | 'mockPUT' | 'mockPOST' | 'mockDELETE' | 'mockPATCH';
 
 const CONTROLLERS = ['playwright', 'puppeteer'];
 
-describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
+describe.each(CONTROLLERS)(`Mockiavelli integration (%s)`, (controller) => {
     const ctx = setupTestCtx(controller);
 
-    test.each(METHODS)('matches request with .mock method ', async METHOD => {
-        ctx.mocketeer.mock(
+    test.each(METHODS)('matches request with .mock method ', async (METHOD) => {
+        ctx.mockiavelli.mock(
             {
                 method: METHOD,
                 url: '/foo',
@@ -31,14 +26,11 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
 
     test.each(METHODS)(
         'matches request with .mock%s() method and URL string',
-        async METHOD => {
-            ctx.mocketeer[('mock' + METHOD) as MocketeerHttpMethods](
-                '/example',
-                {
-                    status: 200,
-                    body: METHOD,
-                }
-            );
+        async (METHOD) => {
+            ctx.mockiavelli[('mock' + METHOD) as Methods]('/example', {
+                status: 200,
+                body: METHOD,
+            });
             const response = await ctx.makeRequest(METHOD, '/example');
             expect(response.body).toEqual(METHOD);
         }
@@ -46,8 +38,8 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
 
     test.each(METHODS)(
         'matches request with .mock%s() method matcher object',
-        async METHOD => {
-            ctx.mocketeer[('mock' + METHOD) as MocketeerHttpMethods](
+        async (METHOD) => {
+            ctx.mockiavelli[('mock' + METHOD) as Methods](
                 { url: '/example' },
                 {
                     status: 200,
@@ -60,14 +52,14 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     );
 
     test('matches request when filter does not define query params but request has', async () => {
-        ctx.mocketeer.mockGET('/example', { status: 200 });
+        ctx.mockiavelli.mockGET('/example', { status: 200 });
         const result = await ctx.makeRequest('GET', '/example?param=value');
         expect(result.status).toEqual(200);
     });
 
     test('does not match request when methods does not match', async () => {
         jest.spyOn(console, 'error').mockImplementation(() => {});
-        ctx.mocketeer.mock(
+        ctx.mockiavelli.mock(
             { method: 'GET', url: '/example' },
             { status: 200, body: 'ok' }
         );
@@ -77,7 +69,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
 
     test('does not match request when URLs does not match', async () => {
         jest.spyOn(console, 'error').mockImplementation(() => {});
-        ctx.mocketeer.mock(
+        ctx.mockiavelli.mock(
             { method: 'GET', url: '/example' },
             { status: 200, body: 'ok' }
         );
@@ -88,7 +80,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('match by request body', async () => {
-        ctx.mocketeer.mockPOST(
+        ctx.mockiavelli.mockPOST(
             { url: '/example', body: { key: 'value' } },
             { status: 200 }
         );
@@ -103,7 +95,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
 
     test('match by request body - negative scenario', async () => {
         jest.spyOn(console, 'error').mockImplementation(() => {});
-        ctx.mocketeer.mockPOST(
+        ctx.mockiavelli.mockPOST(
             { url: '/example', body: { key: 'value' } },
             { status: 200 }
         );
@@ -117,7 +109,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('mocks multiple requests', async () => {
-        ctx.mocketeer.mockGET('/foo', { status: 200 });
+        ctx.mockiavelli.mockGET('/foo', { status: 200 });
         const res1 = await ctx.makeRequest('GET', '/foo');
         const res2 = await ctx.makeRequest('GET', '/foo');
         expect(res1.status).toEqual(200);
@@ -125,19 +117,19 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('can defined mocked response with status 500', async () => {
-        ctx.mocketeer.mockGET('/foo', { status: 500 });
+        ctx.mockiavelli.mockGET('/foo', { status: 500 });
         const res = await ctx.makeRequest('GET', '/foo');
         expect(res.status).toEqual(500);
     });
 
     test('matches request with query passed in URL', async () => {
-        ctx.mocketeer.mockGET('/example?param=value', { status: 200 });
+        ctx.mockiavelli.mockGET('/example?param=value', { status: 200 });
         const response = await ctx.makeRequest('GET', '/example?param=value');
         expect(response.status).toEqual(200);
     });
 
     test('matches request with query defined as object', async () => {
-        ctx.mocketeer.mockGET(
+        ctx.mockiavelli.mockGET(
             {
                 url: '/example',
                 query: {
@@ -151,7 +143,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('matches request by query - ignores params order', async () => {
-        ctx.mocketeer.mockGET('/example?param=value&param2=value2', {
+        ctx.mockiavelli.mockGET('/example?param=value&param2=value2', {
             status: 200,
         });
         const response = await ctx.makeRequest(
@@ -162,7 +154,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('matches request by query - ignores excessive params', async () => {
-        ctx.mocketeer.mockGET('/example?param=value', { status: 200 });
+        ctx.mockiavelli.mockGET('/example?param=value', { status: 200 });
         const response = await ctx.makeRequest(
             'GET',
             '/example?param=value&foo=bar'
@@ -172,7 +164,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
 
     test('does not match requests with non-matching query params', async () => {
         jest.spyOn(console, 'error').mockImplementation(() => {});
-        ctx.mocketeer.mockGET('/example?param=value', { status: 200 });
+        ctx.mockiavelli.mockGET('/example?param=value', { status: 200 });
         const response = await ctx.makeRequest(
             'GET',
             '/example?param=nonMatching'
@@ -181,7 +173,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('.waitForRequest() returns intercepted request data', async () => {
-        const mock = await ctx.mocketeer.mockPOST('/foo', { status: 200 });
+        const mock = await ctx.mockiavelli.mockPOST('/foo', { status: 200 });
 
         const headers = {
             'x-header': 'FOO',
@@ -199,7 +191,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('.waitForRequest() rejects when request matching mock was not found', async () => {
-        const mock = await ctx.mocketeer.mock(
+        const mock = await ctx.mockiavelli.mock(
             { method: 'GET', url: '/some_endpoint' },
             { status: 200, body: 'OK' }
         );
@@ -223,7 +215,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('notifies when mock was called', async () => {
-        const mock = await ctx.mocketeer.mockGET('/foo', { status: 200 });
+        const mock = await ctx.mockiavelli.mockGET('/foo', { status: 200 });
 
         // @ts-ignore
         await ctx.page.evaluate(() => {
@@ -236,9 +228,9 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('can set priorities on mocks', async () => {
-        const mock = await ctx.mocketeer.mockGET('/foo', { status: 200 });
+        const mock = await ctx.mockiavelli.mockGET('/foo', { status: 200 });
 
-        const mockWithPriority = await ctx.mocketeer.mockGET(
+        const mockWithPriority = await ctx.mockiavelli.mockGET(
             '/foo',
             { status: 200 },
             {
@@ -255,16 +247,16 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('can remove mock so it is no longer called', async () => {
-        const mock = await ctx.mocketeer.mockGET('/foo', {
+        const mock = await ctx.mockiavelli.mockGET('/foo', {
             status: 200,
             body: { id: 1 },
         });
 
         await ctx.makeRequest('GET', '/foo');
 
-        ctx.mocketeer.removeMock(mock);
+        ctx.mockiavelli.removeMock(mock);
 
-        await ctx.mocketeer.mockGET('/foo', {
+        await ctx.mockiavelli.mockGET('/foo', {
             status: 200,
             body: { id: 2 },
         });
@@ -275,7 +267,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     it('can inspect requests that are invoke asynchronously', async () => {
-        const mock = await ctx.mocketeer.mockGET('/foo', { status: 200 });
+        const mock = await ctx.mockiavelli.mockGET('/foo', { status: 200 });
 
         // @ts-ignore
         await ctx.page.evaluate(() => {
@@ -293,7 +285,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     describe('ordering', () => {
         it('matches only once request with once set to true', async () => {
             spyOn(console, 'error');
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 200 },
                 {
@@ -307,8 +299,8 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('fallbacks to previously defined mock when once=true', async () => {
-            await ctx.mocketeer.mockGET('/foo', { status: 200 });
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET('/foo', { status: 200 });
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 201 },
                 {
@@ -322,13 +314,13 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('matches only once every request in order with once set to true', async () => {
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 200, body: {} },
                 { once: true }
             );
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 201, body: {} },
                 {
@@ -341,40 +333,40 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('matches newest request when added mock with same filter', async () => {
-            await ctx.mocketeer.mockGET('/foo', { status: 200, body: {} });
+            await ctx.mockiavelli.mockGET('/foo', { status: 200, body: {} });
             expect((await ctx.makeRequest('GET', '/foo')).status).toBe(200);
 
-            await ctx.mocketeer.mockGET('/foo', { status: 201, body: {} });
+            await ctx.mockiavelli.mockGET('/foo', { status: 201, body: {} });
             expect((await ctx.makeRequest('GET', '/foo')).status).toBe(201);
         });
 
         it('matches newest request when multiple mocks have same filter', async () => {
-            await ctx.mocketeer.mockGET('/foo', { status: 200, body: {} });
-            await ctx.mocketeer.mockGET('/foo', { status: 201, body: {} });
+            await ctx.mockiavelli.mockGET('/foo', { status: 200, body: {} });
+            await ctx.mockiavelli.mockGET('/foo', { status: 201, body: {} });
 
             expect((await ctx.makeRequest('GET', '/foo')).status).toBe(201);
         });
 
         it('matches newest request when added mock with same filter and older mock has once set to true ', async () => {
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 200, body: {} },
                 { once: true }
             );
             expect((await ctx.makeRequest('GET', '/foo')).status).toBe(200);
 
-            await ctx.mocketeer.mockGET('/foo', { status: 201, body: {} });
+            await ctx.mockiavelli.mockGET('/foo', { status: 201, body: {} });
             expect((await ctx.makeRequest('GET', '/foo')).status).toBe(201);
         });
 
         it('matches requests with once set to true in correct order when multiple mocks have same filter', async () => {
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 200, body: {} },
                 { once: true }
             );
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 201, body: {} },
                 {
@@ -382,7 +374,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
                 }
             );
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 202, body: {} },
                 {
@@ -396,15 +388,15 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('matches request with highest priority when multiple mocks have same filter', async () => {
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 200, body: {} },
                 { priority: 10 }
             );
 
-            await ctx.mocketeer.mockGET('/foo', { status: 201, body: {} });
+            await ctx.mockiavelli.mockGET('/foo', { status: 201, body: {} });
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 202, body: {} },
                 { priority: 5 }
@@ -414,27 +406,27 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('matches request in correct order with priority and once set to true when multiple mocks have same filter', async () => {
-            await ctx.mocketeer.mockGET('/foo', { status: 200, body: {} });
+            await ctx.mockiavelli.mockGET('/foo', { status: 200, body: {} });
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 201, body: {} },
                 { once: true, priority: 10 }
             );
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 202, body: {} },
                 { once: true }
             );
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 203, body: {} },
                 { once: true, priority: 10 }
             );
 
-            await ctx.mocketeer.mockGET(
+            await ctx.mockiavelli.mockGET(
                 '/foo',
                 { status: 204, body: {} },
                 { once: true, priority: 5 }
@@ -451,7 +443,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
 
     describe('path variables', () => {
         it('mocks fetch GET request with path variable as number', async () => {
-            const mock = await ctx.mocketeer.mockGET('/foo/:id', {
+            const mock = await ctx.mockiavelli.mockGET('/foo/:id', {
                 status: 200,
             });
 
@@ -462,7 +454,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('mocks fetch GET request with path variable as string', async () => {
-            const mock = await ctx.mocketeer.mockGET('/foo/:id', {
+            const mock = await ctx.mockiavelli.mockGET('/foo/:id', {
                 status: 200,
             });
 
@@ -473,7 +465,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('mocks fetch GET request with path variable and query', async () => {
-            const mock = await ctx.mocketeer.mock(
+            const mock = await ctx.mockiavelli.mock(
                 { url: '/foo/:id?param=fooParam', method: 'GET' },
                 { status: 200 }
             );
@@ -484,7 +476,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('mocks fetch GET request with schema, origin, path variable and query', async () => {
-            const mock = await ctx.mocketeer.mock(
+            const mock = await ctx.mockiavelli.mock(
                 {
                     url: 'https://localhost:3000/foo/:id?param=fooParam',
                     method: 'GET',
@@ -501,7 +493,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
         });
 
         it('mocks fetch GET request with multiple path variables', async () => {
-            const mock = await ctx.mocketeer.mock(
+            const mock = await ctx.mockiavelli.mock(
                 { url: '/foo/:id/:name', method: 'GET' },
                 { status: 200 }
             );
@@ -540,7 +532,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
             // @ts-ignore
             ctx.page.evaluate(
                 () =>
-                    new Promise(resolve => {
+                    new Promise((resolve) => {
                         var xhr = new XMLHttpRequest();
                         xhr.open('GET', '/unmocked', true);
                         xhr.onloadend = () => resolve(xhr.status);
@@ -551,7 +543,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('mock redirect requests', async () => {
-        await ctx.mocketeer.mockGET('/redirect', {
+        await ctx.mockiavelli.mockGET('/redirect', {
             status: 302,
             headers: {
                 Location: `http://localhost:${PORT}/page1.html`,
@@ -568,7 +560,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('mock request with string in response (instead of JSON)', async () => {
-        await ctx.mocketeer.mockGET('/resource', {
+        await ctx.mockiavelli.mockGET('/resource', {
             status: 200,
             body: 'testBody',
         });
@@ -577,7 +569,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('allow to provide content-type manually', async () => {
-        await ctx.mocketeer.mockGET('/resource', {
+        await ctx.mockiavelli.mockGET('/resource', {
             status: 200,
             headers: {
                 'content-type': 'text/html',
@@ -590,7 +582,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('mock request to assets', async () => {
-        ctx.mocketeer.mockGET('/script.js', {
+        ctx.mockiavelli.mockGET('/script.js', {
             headers: {
                 'Content-Type': 'text/javascript; charset=UTF-8',
             },
@@ -605,7 +597,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('mocked response as a function', async () => {
-        await ctx.mocketeer.mockGET('/resource', () => {
+        await ctx.mockiavelli.mockGET('/resource', () => {
             const body = 'hello' + 'world';
             return {
                 status: 200,
@@ -617,7 +609,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('mocked response in function of request data', async () => {
-        await ctx.mocketeer.mockPOST('/resource/:id', request => {
+        await ctx.mockiavelli.mockPOST('/resource/:id', (request) => {
             return {
                 status: 200,
                 body: {
@@ -648,7 +640,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('mock cross-origin requests', async () => {
-        await ctx.mocketeer.mockPOST('http://example.com/resource', {
+        await ctx.mockiavelli.mockPOST('http://example.com/resource', {
             status: 200,
             body: '',
         });
@@ -660,7 +652,7 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('mock cross-origin redirect requests', async () => {
-        await ctx.mocketeer.mockGET('http://example.com/redirect', {
+        await ctx.mockiavelli.mockGET('http://example.com/redirect', {
             status: 302,
             headers: {
                 Location: `http://localhost:${PORT}/page1.html`,
@@ -679,14 +671,14 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('set correct response headers when response body is empty', async () => {
-        await ctx.mocketeer.mockGET('/example', { status: 200 });
+        await ctx.mockiavelli.mockGET('/example', { status: 200 });
         const response = await ctx.makeRequest('GET', '/example');
         expect(response.headers['content-length']).toBe('0');
         expect(response.headers['content-type']).toBe(undefined);
     });
 
     test('set correct response headers when response body is not empty', async () => {
-        await ctx.mocketeer.mockGET('/example', {
+        await ctx.mockiavelli.mockGET('/example', {
             status: 200,
             body: { ok: 'yes' },
         });
@@ -698,14 +690,14 @@ describe.each(CONTROLLERS)(`Mocketeer integration (%s)`, controller => {
     });
 
     test('wait for a number of requests to be matched', async () => {
-        const mock = await ctx.mocketeer.mockGET('/example', { status: 200 });
+        const mock = await ctx.mockiavelli.mockGET('/example', { status: 200 });
         await ctx.makeRequest('GET', '/example');
         await ctx.makeRequest('GET', '/example');
         await mock.waitForRequestsCount(2);
     });
 
     test('wait for a number of requests to be matched - async scenario', async () => {
-        const mock = await ctx.mocketeer.mockGET('/example', { status: 200 });
+        const mock = await ctx.mockiavelli.mockGET('/example', { status: 200 });
         await ctx.makeRequest('GET', '/example', {}, undefined, {
             waitForRequestEnd: false,
         });

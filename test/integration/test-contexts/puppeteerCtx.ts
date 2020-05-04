@@ -1,12 +1,12 @@
 import { Browser, launch, Page } from 'puppeteer';
-import { Mocketeer } from '../../../src';
+import { Mockiavelli } from '../../../src';
 import { makeRequest } from '../test-helpers/make-request';
 
 const PORT = 9000;
 
 export interface PuppeteerTestCtx {
     page?: Page;
-    mocketeer?: Mocketeer;
+    mockiavelli?: Mockiavelli;
     makeRequest?: ReturnType<typeof makeRequestFactory>;
 }
 
@@ -32,8 +32,8 @@ export function setupPuppeteerCtx() {
         testCtx.page = await browser.newPage();
         await testCtx.page.goto(`http://localhost:${PORT}`);
 
-        // Instantiate Mocketeer
-        testCtx.mocketeer = await Mocketeer.setup(testCtx.page);
+        // Instantiate
+        testCtx.mockiavelli = await Mockiavelli.setup(testCtx.page);
         testCtx.makeRequest = makeRequestFactory(testCtx.page);
     });
 

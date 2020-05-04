@@ -1,4 +1,4 @@
-import { Mocketeer, Mock } from '../../src';
+import { Mockiavelli, Mock } from '../../src';
 import { createMockPage } from './fixtures/page';
 jest.mock('../../src/mock');
 jest.mock('../../src/controllers/BrowserControllerFactory', () => ({
@@ -9,18 +9,18 @@ jest.mock('../../src/controllers/BrowserControllerFactory', () => ({
     },
 }));
 
-describe('Mocketeer', () => {
+describe('Mockiavelli', () => {
     describe('setup()', () => {
-        it('returns a promise resolving to instance of Mocketeer', async () => {
+        it('returns a promise resolving to instance of Mockiavelli', async () => {
             const page = createMockPage();
-            await expect(Mocketeer.setup(page)).resolves.toBeInstanceOf(
-                Mocketeer
+            await expect(Mockiavelli.setup(page)).resolves.toBeInstanceOf(
+                Mockiavelli
             );
         });
     });
 
     describe('mock http methods', () => {
-        let mocketeer: Mocketeer;
+        let mockiavelli: Mockiavelli;
         const url = 'url';
         const filter = { url };
         const filterWithQuery = {
@@ -32,11 +32,11 @@ describe('Mocketeer', () => {
         const mockResponse = { status: 404, body: {} };
 
         beforeEach(async () => {
-            mocketeer = new Mocketeer();
+            mockiavelli = new Mockiavelli();
         });
 
         test('should create RestMock using GET method and filter as object', () => {
-            mocketeer.mockGET(filter, mockResponse);
+            mockiavelli.mockGET(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({ method: 'GET', ...filter }),
                 mockResponse,
@@ -45,7 +45,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using GET method with filter and query as objects', () => {
-            mocketeer.mockGET(filterWithQuery, mockResponse);
+            mockiavelli.mockGET(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'GET',
@@ -57,7 +57,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using GET method and filter as url string', () => {
-            mocketeer.mockGET(url, mockResponse);
+            mockiavelli.mockGET(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({ method: 'GET', ...filter }),
                 mockResponse,
@@ -66,7 +66,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using POST method and filter as object', () => {
-            mocketeer.mockPOST(filter, mockResponse);
+            mockiavelli.mockPOST(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'POST',
@@ -78,7 +78,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using POST method with filter and query as objects', () => {
-            mocketeer.mockPOST(filterWithQuery, mockResponse);
+            mockiavelli.mockPOST(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'POST',
@@ -90,7 +90,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using POST method and filter as url string', () => {
-            mocketeer.mockPOST(url, mockResponse);
+            mockiavelli.mockPOST(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'POST',
@@ -102,7 +102,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using PUT method and filter as object', () => {
-            mocketeer.mockPUT(filter, mockResponse);
+            mockiavelli.mockPUT(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({ method: 'PUT', ...filter }),
                 mockResponse,
@@ -111,7 +111,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using PUT method with filter and query as objects', () => {
-            mocketeer.mockPUT(filterWithQuery, mockResponse);
+            mockiavelli.mockPUT(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'PUT',
@@ -123,7 +123,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using PUT method and filter as url string', () => {
-            mocketeer.mockPUT(url, mockResponse);
+            mockiavelli.mockPUT(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({ method: 'PUT', ...filter }),
                 mockResponse,
@@ -132,7 +132,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using DELETE method and filter as object', () => {
-            mocketeer.mockDELETE(filter, mockResponse);
+            mockiavelli.mockDELETE(filter, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'DELETE',
@@ -144,7 +144,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using DELETE method with filter and query as objects', () => {
-            mocketeer.mockDELETE(filterWithQuery, mockResponse);
+            mockiavelli.mockDELETE(filterWithQuery, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'DELETE',
@@ -156,7 +156,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using DELETE method and filter as url string', () => {
-            mocketeer.mockDELETE(url, mockResponse);
+            mockiavelli.mockDELETE(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'DELETE',
@@ -168,7 +168,7 @@ describe('Mocketeer', () => {
         });
 
         test('should create RestMock using PATCH method and filter as url string', () => {
-            mocketeer.mockPATCH(url, mockResponse);
+            mockiavelli.mockPATCH(url, mockResponse);
             expect(Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     method: 'PATCH',

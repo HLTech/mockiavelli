@@ -15,7 +15,7 @@ import { stringify } from 'querystring';
 import { match, MatchFunction } from 'path-to-regexp';
 import { BrowserRequest } from './controllers/BrowserController';
 
-const debug = dbg('mocketeer:rest');
+const debug = dbg('mockiavelli:mock');
 
 const GET_REQUEST_TIMEOUT = 100;
 
@@ -135,7 +135,6 @@ export class Mock {
     }
 
     private getRequestMatch(request: BrowserRequest): MatchedRequest | null {
-
         if (request.method !== this.matcher.method) {
             this.debugMiss('method', request.method, this.matcher.method);
             return null;
@@ -226,7 +225,8 @@ export class Mock {
 
     private prettyPrint(): string {
         const qs = stringify(this.matcher.query);
-        return `(${this.debugId}) ${this.matcher.method || 'HTTP'} ${this
-            .matcher.path + (qs ? '?' + qs : '')}`;
+        return `(${this.debugId}) ${this.matcher.method || 'HTTP'} ${
+            this.matcher.path + (qs ? '?' + qs : '')
+        }`;
     }
 }

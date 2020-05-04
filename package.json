@@ -1,9 +1,17 @@
 {
-    "name": "@hltech/mocketeer",
+    "name": "mockiavelli",
     "version": "0.0.0-development",
+    "description": "HTTP request mocking library for Puppeteer and Playwright",
+    "keywords": [
+        "mock",
+        "puppeteer",
+        "playwright",
+        "mocking",
+        "http"
+    ],
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
-    "license": "UNLICENSED",
+    "license": "MIT",
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "test": "jest",
@@ -36,7 +44,12 @@
     "files": [
         "dist"
     ],
-    "publishConfig": {
-        "registry": "https://nexus.hltech.dev/repository/frontend-npm"
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HLTech/mockiavelli.git"
+    },
+    "homepage": "https://github.com/HLTech/mockiavelli",
+    "bugs": {
+        "url": "https://github.com/HLTech/mockiavelli/issues"
     }
 }
