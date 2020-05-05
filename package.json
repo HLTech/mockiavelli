@@ -1,6 +1,6 @@
 {
     "name": "mockiavelli",
-    "version": "0.0.0-development",
+    "version": "1.0.0",
     "description": "HTTP request mocking library for Puppeteer and Playwright",
     "keywords": [
         "mock",
