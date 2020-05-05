@@ -26,6 +26,10 @@ addons:
             # this is needed for running headful tests
             - xvfb
 
+branches:
+    only:
+        - master
+
 env:
     global:
         # NPM_TOKEN
@@ -40,6 +44,4 @@ script:
 deploy:
     provider: script
     skip_cleanup: true
-    script: npm run release --dry-run
-    on:
-        branch: master
+    script: npm run release
