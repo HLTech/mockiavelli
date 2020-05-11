@@ -1,13 +1,19 @@
 <p align="center">
-    <img src="./mockiavelli-logo.png" alt="Mockiavelli Logo" width="256">
+    <img src="./mockiavelli-logo.png" alt="Mockiavelli">
 </p>
+<h2 align="center">
+    Request mocking for Puppeteer and Playwright
+</h2>
 
 ---
 
-**Mockiavelli is HTTP request mocking library** for [Puppeteer](http://pptr.dev/) and [Playwright](https://github.com/microsoft/playwright/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
+[![npm](https://img.shields.io/npm/v/mockiavelli)](https://www.npmjs.com/package/mockiavelli) [![travis build](https://img.shields.io/travis/hltech/mockiavelli)](https://travis-ci.org/github/HLTech/mockiavelli)
+
+Mockiavelli is HTTP request mocking library for [Puppeteer](http://pptr.dev/) and [Playwright](https://github.com/microsoft/playwright/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
 
 Main features
 
+-   simple, minimal API
 -   mock network requests directly in the test case
 -   inspect and assert requests payload
 -   match request by method, url, path parameters and query strings
@@ -31,6 +37,7 @@ Main features
     -   [Matching priority](#matching-priority)
     -   [Cross-origin (cross-domain) API requests](#cors)
     -   [Dynamic responses](#dynamic-responses)
+    -   [Not matched requests](#not-matched-requests)
     -   [Debug mode](#debug-mode)
 -   [API](#api)
     -   [`Mockiavelli`](#Mockiavelli)
@@ -38,14 +45,14 @@ Main features
 
 ## Installation <a name="installation"/>
 
-```
-npm install mockiavelli
+```bash
+npm install mockiavelli -D
 ```
 
 or if you are using yarn:
 
-```
-yarn add mockiavelli
+```bash
+yarn add mockiavelli -D
 ```
 
 -   Mockiavelli requires [Puppeteer](https://pptr.dev/) or [Playwright](https://www.npmjs.com/package/playwright/) which need to be installed separately.
@@ -53,15 +60,18 @@ yarn add mockiavelli
 
 ## Getting started <a name="getting-started"/>
 
-To start using Mockiavelli, you need to instantiate `Mockiavelli` class by providing it an instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
+To start using Mockiavelli, you need to instantiate it by providing it a `page` - instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
 
 ```typescript
-const { Mockiavelli } = require('mockiavelli');
+import { Mockiavelli } from 'mockiavelli';
+import puppeteer from 'puppeteer';
 
+const browser = await puppeteer.launch();
+const page = await browser.newPage();
 const mockiavelli = await Mockiavelli.setup(page);
 ```
 
-Mockiavelli now intercepts all HTTP requests issued from this page.
+Mockiavelli will start to intercept all HTTP requests issued from this page.
 
 To define response for a given request, call `mockiavelli.mock<HTTP_METHOD>` with request URL and response object:
 
@@ -78,11 +88,10 @@ const getUsersMock = mockiavelli.mockGET('/api/users', {
 Now every `GET /api/users` request issued from this page will receive `200 OK` response with provided body.
 
 ```typescript
-await page.click('.fetch-users'); // trigger request
-await getUsersMock.waitForRequest(); // wait for mock to respond the request
-
-const users = await page.$('.user-list', (el) => el.textContent); // get rendered elements
-console.log(users); // => 123 John Doe, 456 Mary Jane
+const users = await page.evaluate(() => {
+    return fetch('/api/users').then((res) => res.json());
+});
+console.log(users); // [{id: 123, name: 'John Doe' }, {id: 456, name: 'Mary Jane'}]
 ```
 
 ## Full example <a name="full-example"/>
@@ -91,11 +100,11 @@ The example below is a [Jest](https://jestjs.io/en) test case (with [jest-puppet
 
 Mockiavelli is used to mock and assert request that the app makes to REST API upon form submission.
 
-```js
-const { Mockiavelli } = require('mockiavelli');
+```typescript
+import { Mockiavelli } from 'mockiavelli';
 
 test('Sign-up form', async () => {
-    // Enable Mockiavelli on an instance of puppeteer Page provided by jest-puppeteer
+    // Enable mocking on instance of puppeteer Page (provided by jest-puppeteer)
     const mockiavelli = await Mockiavelli.setup(page);
 
     // Navigate to application
@@ -134,13 +143,13 @@ Request can be matched by:
 
 -   providing URL string to `mockiavelli.mock<HTTP_METHOD>` method:
 
-    ```
+    ```typescript
     mockiavelli.mockGET('/api/users?age=30', {status: 200, body: [....]})
     ```
 
 -   providing matcher object to `mockiavelli.mock<HTTP_METHOD>` method
 
-    ```
+    ```typescript
     mockiavelli.mockGET({
         url: '/api/users',
         query: { age: '30' }
@@ -148,19 +157,22 @@ Request can be matched by:
     ```
 
 -   providing full matcher object `mockiavelli.mock` method
-    ```
+
+    ```typescript
     mockiavelli.mock({
-        method: 'GET'
+        method: 'GET',
         url: '/api/users',
         query: { age: '30' }
-    }, {status: 200, body: [....]})
+    }, {status: 200, body: [...]})
     ```
 
 ### Path parameters matching <a name="path-parameters-matching"/>
 
-Path parameters in the URL can be matched using `:param` notation. When a request is made, the actual params are exposed in `request.params`:
+Path parameters in the URL can be matched using `:param` notation, thanks to [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) library.
 
-```js
+If mock matches the request, those params are exposed in `request.params` property.
+
+```typescript
 const getUserMock = mockiavelli.mockGET('/api/users/:userId', { status: 200 });
 
 // GET /api/users/1234 => 200
@@ -171,12 +183,14 @@ console.log(await getUserMock.waitForRequest());
 // { params: {userId : "12345"}, path: "/api/users/12345", ... }
 ```
 
+Mockiavelli uses
+
 ### Query params matching <a name="query-parameters-matching"/>
 
 Mockiavelli supports matching requests by query parameters. All defined params are then required to match the request, but excess params are ignored:
 
-```
-mockiavelli.mockGET('/api/users?city=Warsaw&sort=asc', {status: 200})
+```typescript
+mockiavelli.mockGET('/api/users?city=Warsaw&sort=asc', { status: 200 });
 
 // GET /api/users?city=Warsaw&sort=asc            => 200
 // GET /api/users?city=Warsaw&sort=asc&limit=10   => 200
@@ -185,8 +199,11 @@ mockiavelli.mockGET('/api/users?city=Warsaw&sort=asc', {status: 200})
 
 It is also possible to define query parameters as object. This notation works great for matching array query params:
 
-```
-mockiavelli.mockGET({url: '/api/users', query: { status: ['active', 'blocked']}}, {status: 200})
+```typescript
+mockiavelli.mockGET(
+    { url: '/api/users', query: { status: ['active', 'blocked'] } },
+    { status: 200 }
+);
 
 // GET /api/users?status=active&status=blocked  => 200
 ```
@@ -197,15 +214,15 @@ mockiavelli.mockGET({url: '/api/users', query: { status: ['active', 'blocked']}}
 
 To assert details of request made by application use async `mock.waitForRequest()` method. It will throw an error if no matching request was made.
 
-```
-const postUsersMock = mockiavelli.mockPOST('/api/users', {status: 200});
+```typescript
+const postUsersMock = mockiavelli.mockPOST('/api/users', { status: 200 });
 
 // ... perform interaction on tested page ...
 
 const postUserRequest = await postUsersMock.waitForRequest(); // Throws if POST /api/users request was not made
 expect(postUserRequest.body).toBe({
-  name: 'John',
-  email: 'john@example.com'
+    name: 'John',
+    email: 'john@example.com',
 });
 ```
 
@@ -213,8 +230,8 @@ expect(postUserRequest.body).toBe({
 
 By default mock are persistent, meaning that they will respond to multiple matching requests:
 
-```
-mockiavelli.mockGET('/api/users', {status: 200});
+```typescript
+mockiavelli.mockGET('/api/users', { status: 200 });
 
 // GET /api/users => 200
 // GET /api/users => 200
@@ -222,8 +239,8 @@ mockiavelli.mockGET('/api/users', {status: 200});
 
 To change this behaviour and disable mock once it matched a request use `once` option:
 
-```
-mockiavelli.mockGET('/api/users', {status: 200}, {once: true});
+```typescript
+mockiavelli.mockGET('/api/users', { status: 200 }, { once: true });
 
 // GET /api/users => 200
 // GET /api/users => 404
@@ -233,13 +250,13 @@ mockiavelli.mockGET('/api/users', {status: 200}, {once: true});
 
 Mocks are matched in the "newest first" order. To override previously defined mock simply define new one:
 
-```
-mockiavelli.mockGET('/api/users', {status: 200});
-mockiavelli.mockGET('/api/users', {status: 401});
+```typescript
+mockiavelli.mockGET('/api/users', { status: 200 });
+mockiavelli.mockGET('/api/users', { status: 401 });
 
 // GET /api/users => 401
 
-mockiavelli.mockGET('/api/users', {status: 500})
+mockiavelli.mockGET('/api/users', { status: 500 });
 
 // GET /api/users => 500
 ```
@@ -248,10 +265,14 @@ mockiavelli.mockGET('/api/users', {status: 500})
 
 To change the default "newest first" matching order, you define mocks with combination of `once` and `priority` parameters:
 
-```
-mockiavelli.mockGET('/api/users', {status: 404}, {once: true, priority: 10});
-mockiavelli.mockGET('/api/users', {status: 500}, {once: true, priority: 5});
-mockiavelli.mockGET('/api/users', {status: 200});
+```typescript
+mockiavelli.mockGET(
+    '/api/users',
+    { status: 404 },
+    { once: true, priority: 10 }
+);
+mockiavelli.mockGET('/api/users', { status: 500 }, { once: true, priority: 5 });
+mockiavelli.mockGET('/api/users', { status: 200 });
 
 // GET /api/users => 404
 // GET /api/users => 500
@@ -289,12 +310,22 @@ mockiavelli.mockGET('/api/users/:userId', (request) => {
 // GET /api/users/123 => 200 {"id": "123", ... }
 ```
 
+### Not matched requests <a name="not-matched-requests" />
+
+In usual scenarios, you should mock all requests done by your app.
+
+Any XHR or fetched request done by the page not matched by any mock will be responded with `404 Not Found`. Mockiavelli will also log this event to console:
+
+```typescript
+Mock not found for request: type=fetch method=GET url=http://example.com
+```
+
 ### Debug mode <a name="debug-mode"/>
 
 Passing `{debug: true}` to `Mockiavelli.setup` enables rich debugging in console:
 
-```
-await Mockiavelli.setup(page, {debug: true});
+```typescript
+await Mockiavelli.setup(page, { debug: true });
 ```
 
 ## API <a name="api"/>
@@ -318,6 +349,9 @@ If request does not match any mocks, it will be responded with `404 Not Found`.
 ###### Example
 
 ```typescript
+import { puppeteer } from 'puppeteer';
+import { Mockiavelli } from 'mockiavelli';
+
 const browser = await puppeteer.launch();
 const page = await browser.newPage();
 const mockiavelli = await Mockiavelli.setup(page);
