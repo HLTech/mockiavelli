@@ -1,4 +1,13 @@
 import dbg from 'debug';
+import {
+    BrowserController,
+    BrowserRequestHandler,
+    BrowserRequestType,
+} from './controllers/BrowserController';
+import {
+    BrowserControllerFactory,
+    BrowserPage,
+} from './controllers/BrowserControllerFactory';
 import { Mock } from './mock';
 import {
     MockedResponse,
@@ -8,21 +17,12 @@ import {
 } from './types';
 import {
     addMockByPriority,
-    printRequest,
     createRequestMatcher,
     getCorsHeaders,
-    sanitizeHeaders,
+    printRequest,
     printResponse,
+    sanitizeHeaders,
 } from './utils';
-import {
-    BrowserController,
-    BrowserRequestHandler,
-    BrowserRequestType,
-} from './controllers/BrowserController';
-import {
-    BrowserPage,
-    BrowserControllerFactory,
-} from './controllers/BrowserControllerFactory';
 
 const debug = dbg('mockiavelli:main');
 
@@ -36,8 +36,14 @@ export interface MockiavelliOptions {
 export class Mockiavelli {
     private readonly baseUrl: string = '';
     private mocks: Mock[] = [];
+    private controller: BrowserController;
 
-    constructor(options: Partial<MockiavelliOptions> = {}) {
+    constructor(page: BrowserPage, options: Partial<MockiavelliOptions> = {}) {
+        this.controller = BrowserControllerFactory.createForPage(
+            page,
+            this.onRequest
+        );
+
         if (options.baseUrl) {
             this.baseUrl = options.baseUrl;
         }
@@ -52,14 +58,17 @@ export class Mockiavelli {
         page: BrowserPage,
         options: Partial<MockiavelliOptions> = {}
     ): Promise<Mockiavelli> {
-        const instance = new Mockiavelli(options);
-        const controller = BrowserControllerFactory.createForPage(page);
-        await instance.activate(controller);
+        const instance = new Mockiavelli(page, options);
+        await instance.enable();
         return instance;
     }
 
-    private async activate(controller: BrowserController): Promise<void> {
-        await controller.startInterception(this.onRequest);
+    public async enable(): Promise<void> {
+        await this.controller.startInterception();
+    }
+
+    public async disable(): Promise<void> {
+        await this.controller.stopInterception();
     }
 
     public mock<TResponseBody = any>(

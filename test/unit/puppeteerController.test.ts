@@ -5,17 +5,17 @@ import { PuppeteerRequestMock } from './fixtures/PuppeteerRequest';
 describe('PuppeteerAdapter', () => {
     test('.start() subscribes for page request event', async () => {
         const page = createMockPage();
-        const adapter = new PuppeteerController(page);
-        await adapter.startInterception(() => {});
+        const adapter = new PuppeteerController(page, () => {});
+        await adapter.startInterception();
         expect(page.setRequestInterception).toHaveBeenCalledWith(true);
         expect(page.on).toHaveBeenCalledWith('request', expect.any(Function));
     });
 
     test('returns serialized request object', async () => {
         const page = createMockPage();
-        const adapter = new PuppeteerController(page);
         const handler = jest.fn();
-        await adapter.startInterception(handler);
+        const adapter = new PuppeteerController(page, handler);
+        await adapter.startInterception();
 
         // Trigger request
         page.on.mock.calls[0][1](
@@ -53,9 +53,9 @@ describe('PuppeteerAdapter', () => {
 
     test('returns correct path and url when origin contains trailing slash', async () => {
         const page = createMockPage();
-        const adapter = new PuppeteerController(page);
         const handler = jest.fn();
-        await adapter.startInterception(handler);
+        const adapter = new PuppeteerController(page, handler);
+        await adapter.startInterception();
 
         // Trigger request
         page.on.mock.calls[0][1](

@@ -37,6 +37,7 @@ Main features
     -   [Matching priority](#matching-priority)
     -   [Specifying API base url](#base-url)
     -   [Cross-origin (cross-domain) API requests](#cors)
+    -   [Stop mocking](#stop-mocking)
     -   [Dynamic responses](#dynamic-responses)
     -   [Not matched requests](#not-matched-requests)
     -   [Debug mode](#debug-mode)
@@ -304,6 +305,28 @@ mockiavelli.mockGET('http://api.example.com/api/users', { status: 200 });
 // GET http://another-domain.example.com/api/users => 404
 ```
 
+### Stop mocking <a name="stop-mocking">
+
+To stop intercept requests you can call `mockiavelli.disable` method (all requests will send to real services).
+Then you can enable mocking again by `mockiavelli.enable` method.
+
+```typescript
+mockiavelli.mockGET('/api/users/:userId', {
+    status: 200,
+    body: { name: 'John Doe' },
+});
+
+// GET /api/users/1234 => 200 { name: 'John Doe' }
+
+mockiavelli.disable();
+
+// GET /api/users/1234 => 200 { name: 'Jacob Kowalski' } <- real data from backend
+
+mockiavelli.enable();
+
+// GET /api/users/1234 => 200 { name: 'John Doe' }
+```
+
 ### Dynamic responses <a name="dynamic-responses"/>
 
 It is possible to define mocked response in function of incoming request. This is useful if you need to use some information from request URL or body in the response:
@@ -474,6 +497,16 @@ mockiavelli.mockGET('http://example.com/api/clients/', {
     body: [{...}],
 });
 ```
+
+#### `mockiavelli.disable()`
+
+Stop mocking of requests by Mockiavelli.
+After that all requests pass to real endpoints.
+This method does not reset set mocks or possibility to set mocks, so when we then enable again mocking by `mockiavelli.enable()`, all set mocks works again.
+
+#### `mockiavelli.enable()`
+
+To enable mocking of requests by Mockiavelli when previously `mockiavelli.diable()` was called.
 
 ---
 

@@ -8,18 +8,28 @@ import {
 import { getOrigin, tryJsonParse } from '../utils';
 
 export class PuppeteerController implements BrowserController {
-    constructor(private readonly page: Page) {}
+    constructor(
+        private readonly page: Page,
+        private readonly onRequest: BrowserRequestHandler
+    ) {}
 
-    async startInterception(onRequest: BrowserRequestHandler) {
+    public async startInterception() {
         await this.page.setRequestInterception(true);
-        this.page.on('request', (request) => {
-            onRequest(
-                this.toBrowserRequest(request),
-                (response) => request.respond(response),
-                () => request.continue()
-            );
-        });
+        await this.page.on('request', this.requestHandler);
     }
+
+    public async stopInterception() {
+        await this.page.setRequestInterception(false);
+        await this.page.off('request', this.requestHandler);
+    }
+
+    private requestHandler = (request: Request) => {
+        this.onRequest(
+            this.toBrowserRequest(request),
+            (response) => request.respond(response),
+            () => request.continue()
+        );
+    };
 
     private toBrowserRequest(request: Request): BrowserRequest {
         // TODO find a better alternative for url.parse

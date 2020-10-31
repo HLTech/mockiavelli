@@ -1,26 +1,35 @@
-import playwright from 'playwright-core';
+import playwright from 'playwright-chromium';
+import { parse } from 'url';
+import { getOrigin, tryJsonParse } from '../utils';
 import {
     BrowserController,
-    BrowserRequestHandler,
-    ResponseData,
     BrowserRequest,
+    BrowserRequestHandler,
     BrowserRequestType,
+    ResponseData,
 } from './BrowserController';
-import { getOrigin, tryJsonParse } from '../utils';
-import { parse } from 'url';
 
 export class PlaywrightController implements BrowserController {
-    constructor(private readonly page: playwright.Page) {}
+    constructor(
+        private readonly page: playwright.Page,
+        private readonly onRequest: BrowserRequestHandler
+    ) {}
 
-    async startInterception(onRequest: BrowserRequestHandler) {
-        this.page.route('**/*', (route: playwright.Route) => {
-            onRequest(
-                this.toBrowserRequest(route.request()),
-                (data) => this.respond(route, data),
-                () => this.skip(route)
-            );
-        });
+    public async startInterception() {
+        await this.page.route('**/*', this.requestHandler);
     }
+
+    public async stopInterception() {
+        await this.page.unroute('**/*', this.requestHandler);
+    }
+
+    private requestHandler = (route: playwright.Route) => {
+        this.onRequest(
+            this.toBrowserRequest(route.request()),
+            (data) => this.respond(route, data),
+            () => this.skip(route)
+        );
+    };
 
     private toBrowserRequest(request: playwright.Request): BrowserRequest {
         // TODO find a better alternative for url.parse
