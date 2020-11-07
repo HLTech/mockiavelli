@@ -56,9 +56,9 @@ export class Mockiavelli {
         await controller.startInterception(this.onRequest);
     }
 
-    public mock(
+    public mock<TResponseBody = any>(
         matcher: RequestMatcher,
-        response: MockedResponse,
+        response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
         const mock = new Mock(matcher, response, { ...options });
@@ -66,9 +66,9 @@ export class Mockiavelli {
         return mock;
     }
 
-    public mockGET(
+    public mockGET<TResponseBody = any>(
         matcher: ShorthandRequestMatcher,
-        response: MockedResponse,
+        response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
@@ -78,9 +78,9 @@ export class Mockiavelli {
         );
     }
 
-    public mockPOST(
+    public mockPOST<TResponseBody = any>(
         matcher: ShorthandRequestMatcher,
-        response: MockedResponse,
+        response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
@@ -90,9 +90,9 @@ export class Mockiavelli {
         );
     }
 
-    public mockPUT(
+    public mockPUT<TResponseBody = any>(
         matcher: ShorthandRequestMatcher,
-        response: MockedResponse,
+        response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
@@ -102,9 +102,9 @@ export class Mockiavelli {
         );
     }
 
-    public mockDELETE(
+    public mockDELETE<TResponseBody = any>(
         matcher: ShorthandRequestMatcher,
-        response: MockedResponse,
+        response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
@@ -114,9 +114,9 @@ export class Mockiavelli {
         );
     }
 
-    public mockPATCH(
+    public mockPATCH<TResponseBody = any>(
         matcher: ShorthandRequestMatcher,
-        response: MockedResponse,
+        response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
         return this.mock(
