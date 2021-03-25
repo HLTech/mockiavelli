@@ -14,22 +14,23 @@ jobs:
         runs-on: ubuntu-latest
 
         strategy:
+            fail-fast: false
             matrix:
                 include:
                     - library: "puppeteer"
-                      version: 2
+                      version: "2"
                     - library: "puppeteer"
-                      version: 3
+                      version: "3"
                     - library: "puppeteer"
-                      version: 4
+                      version: "4"
                     - library: "puppeteer"
-                      version: 5
+                      version: "5"
                     - library: "puppeteer"
-                      version: 6
+                      version: "6"
                     - library: "puppeteer"
-                      version: 7
+                      version: "7"
                     - library: "playwright"
-                      version: 1.10                 
+                      version: "1.10"                 
         steps:
             - uses: actions/checkout@v2
             - name: Use Node.js
