@@ -15,14 +15,14 @@ export type ShorthandRequestMatcher =
       }
     | string;
 
-export type MockedResponse =
-    | ((req: MatchedRequest) => MockedResponseObject)
-    | MockedResponseObject;
+export type MockedResponse<TResponseBody = any> =
+    | ((req: MatchedRequest) => MockedResponseObject<TResponseBody>)
+    | MockedResponseObject<TResponseBody>;
 
-export interface MockedResponseObject {
+export interface MockedResponseObject<TResponseBody = any> {
     status: number;
     headers?: Record<string, string>;
-    body?: any;
+    body?: TResponseBody;
 }
 
 export type PathParameters = Record<string, string | number>;
