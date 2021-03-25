@@ -7,10 +7,14 @@ const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
 
 type Methods = 'mockGET' | 'mockPUT' | 'mockPOST' | 'mockDELETE' | 'mockPATCH';
 
-const CONTROLLERS = ['playwright', 'puppeteer'];
+const cliFlag = `--controller`;
 
-describe.each(CONTROLLERS)(`Mockiavelli integration (%s)`, (controller) => {
-    const ctx = setupTestCtx(controller);
+const arg = process.argv.find((arg) => arg.match(cliFlag));
+
+const ctrl = arg ? arg.match(new RegExp(`${cliFlag}=(.*)`))[1] : 'puppeteer';
+
+describe(`Mockiavelli integration (%s)`, () => {
+    const ctx = setupTestCtx(ctrl);
 
     test.each(METHODS)('matches request with .mock method ', async (METHOD) => {
         ctx.mockiavelli.mock(
@@ -51,7 +55,7 @@ describe.each(CONTROLLERS)(`Mockiavelli integration (%s)`, (controller) => {
         }
     );
 
-    test('matches request when filter does not define query params but request has', async () => {
+    test.only('matches request when filter does not define query params but request has', async () => {
         ctx.mockiavelli.mockGET('/example', { status: 200 });
         const result = await ctx.makeRequest('GET', '/example?param=value');
         expect(result.status).toEqual(200);
