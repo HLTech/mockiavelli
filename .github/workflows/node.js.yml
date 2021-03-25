@@ -15,11 +15,12 @@ jobs:
 
         strategy:
             matrix:
-                browserLibrary: [puppeteer]
                 include:
-                    - browserLibrary: puppeteer
-                      version: [2, 3, 4, 5, 6, 7]
-
+                    - library: "puppeteer"
+                      version: 2
+                    - library: "puppeteer"
+                      version: 2
+                      
         steps:
             - uses: actions/checkout@v2
             - name: Use Node.js
@@ -30,8 +31,8 @@ jobs:
             - run: npm run build
             - name: Run tests
               run: |
-                  npm install ${{matrix.browserLibrary}}@${{matrix.version}}
-                  npm test -- --controller=${{matrix.browserLibrary}}
+                  npm install ${{matrix.library}}@${{matrix.version}}
+                  npm test -- --controller=${{matrix.library}}
             - name: Archive build artifacts
               uses: actions/upload-artifact@v2
               with:
