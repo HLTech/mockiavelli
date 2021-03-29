@@ -35,6 +35,7 @@ Main features
     -   [One-time mocks](#one-time-mocks)
     -   [Matching order](#matching-order)
     -   [Matching priority](#matching-priority)
+    -   [Specifying API base url](#base-url)
     -   [Cross-origin (cross-domain) API requests](#cors)
     -   [Dynamic responses](#dynamic-responses)
     -   [Not matched requests](#not-matched-requests)
@@ -279,6 +280,19 @@ mockiavelli.mockGET('/api/users', { status: 200 });
 // GET /api/users => 200
 ```
 
+### Specifying API base url <a name="base-url"/>
+
+It is possible to initialize Mockiavelli instance with specified API base url.
+This API base url is added to every mocked request url.
+
+```typescript
+const mockiavelli = await Mockiavelli.setup(page, { baseUrl: '/api/v1' });
+
+mockiavelli.mockGET('/users', { status: 200 });
+
+// GET /api/v1/users => 200
+```
+
 ### Cross-origin (cross-domain) API requests <a name="cors"/>
 
 Mockiavelli has built-in support for cross-origin requests. If application and API are not on the same origin (domain) just provide the full request URL to `mockiavelli.mock<HTTP_METHOD>`
@@ -344,6 +358,7 @@ If request does not match any mocks, it will be responded with `404 Not Found`.
 
 -   `page` _(Page)_ instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
 -   `options` _(object)_ configuration options
+    -   `baseUrl: string` specify the API base url, which will be added to every mocked request url
     -   `debug: boolean` turns debug mode with logging to console (default: `false`)
 
 ###### Example

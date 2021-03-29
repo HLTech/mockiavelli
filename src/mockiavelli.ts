@@ -30,12 +30,18 @@ const interceptedTypes: BrowserRequestType[] = ['xhr', 'fetch'];
 
 export interface MockiavelliOptions {
     debug: boolean;
+    baseUrl: string;
 }
 
 export class Mockiavelli {
+    private readonly baseUrl: string = '';
     private mocks: Mock[] = [];
 
     constructor(options: Partial<MockiavelliOptions> = {}) {
+        if (options.baseUrl) {
+            this.baseUrl = options.baseUrl;
+        }
+
         if (options.debug) {
             dbg.enable('mockiavelli:*');
         }
@@ -61,7 +67,11 @@ export class Mockiavelli {
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
-        const mock = new Mock(matcher, response, { ...options });
+        const matcherWithBaseUrl = {
+            ...matcher,
+            url: this.baseUrl + matcher.url,
+        };
+        const mock = new Mock(matcherWithBaseUrl, response, { ...options });
         addMockByPriority(this.mocks, mock);
         return mock;
     }
