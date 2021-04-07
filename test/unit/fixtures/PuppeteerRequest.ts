@@ -1,17 +1,19 @@
 import {
     Frame,
+    // @ts-ignore
     Headers,
+    // @ts-ignore
     HttpMethod,
-    Request as PuppeteerRequest,
+    HTTPRequest as PuppeteerRequest,
     ResourceType,
-    Response,
+    HTTPResponse,
 } from 'puppeteer';
 import { parse } from 'url';
 
 /**
  * Test implementation of puppeteer Request interface
  */
-export class PuppeteerRequestMock implements PuppeteerRequest {
+export class PuppeteerRequestMock implements Partial<PuppeteerRequest> {
     private _postData: string = '';
     private _url: string = '';
     private _method: HttpMethod = 'GET';
@@ -19,8 +21,9 @@ export class PuppeteerRequestMock implements PuppeteerRequest {
     private _resourceType: ResourceType = 'xhr';
     private _isNavigationRequest: boolean = false;
     private _frame: Frame | null = null;
+    // @ts-ignore
     private _redirectChain: PuppeteerRequestMock[] = [];
-    private _response: Response | null = null;
+    private _response: HTTPResponse | null = null;
 
     public static create(
         data: Partial<{
@@ -32,7 +35,7 @@ export class PuppeteerRequestMock implements PuppeteerRequest {
             isNavigationRequest: boolean;
             frame: Frame;
             redirectChain: PuppeteerRequestMock[];
-            response: Response;
+            response: HTTPResponse;
             origin: string;
         }>
     ) {
@@ -111,6 +114,7 @@ export class PuppeteerRequestMock implements PuppeteerRequest {
         return this._frame;
     }
 
+    // @ts-ignore
     redirectChain() {
         return this._redirectChain;
     }

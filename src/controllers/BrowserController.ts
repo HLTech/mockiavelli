@@ -37,8 +37,9 @@ export interface BrowserRequest {
  */
 export interface ResponseData {
     status: number;
-    body?: Buffer | string;
-    headers?: Record<string, string>;
+    body: Buffer | string;
+    headers: Record<string, string>;
+    contentType: string;
 }
 
 export type BrowserRequestType =

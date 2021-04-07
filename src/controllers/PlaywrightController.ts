@@ -53,7 +53,8 @@ export class PlaywrightController implements BrowserController {
             headers: response.headers || {},
             status: response.status,
             body: response.body ? response.body : '',
-            contentType: response.headers?.['content-type'],
+            contentType:
+                response.contentType || response.headers?.['content-type'],
         });
     }
 

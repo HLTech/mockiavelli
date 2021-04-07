@@ -1,4 +1,4 @@
-import { Page, Request } from 'puppeteer';
+import { Page, HTTPRequest } from 'puppeteer';
 import { parse } from 'url';
 import {
     BrowserController,
@@ -23,7 +23,7 @@ export class PuppeteerController implements BrowserController {
         await this.page.off('request', this.requestHandler);
     }
 
-    private requestHandler = (request: Request) => {
+    private requestHandler = (request: HTTPRequest) => {
         this.onRequest(
             this.toBrowserRequest(request),
             (response) => request.respond(response),
@@ -31,7 +31,7 @@ export class PuppeteerController implements BrowserController {
         );
     };
 
-    private toBrowserRequest(request: Request): BrowserRequest {
+    private toBrowserRequest(request: HTTPRequest): BrowserRequest {
         // TODO find a better alternative for url.parse
         const { pathname, query, protocol, host } = parse(request.url(), true);
 
@@ -51,7 +51,7 @@ export class PuppeteerController implements BrowserController {
     /**
      * Obtain request origin url from originating frame url
      */
-    private getRequestOrigin(request: Request) {
+    private getRequestOrigin(request: HTTPRequest) {
         return getOrigin(request.frame()?.url());
     }
 }
