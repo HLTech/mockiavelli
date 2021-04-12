@@ -56,7 +56,7 @@ export interface PuppeteerPage {
 /**
  * Mirror of puppeteer Request interface
  */
-interface PuppeteerRequest {
+export interface PuppeteerRequest {
     continue(): Promise<void>;
     frame(): {
         url(): string;
