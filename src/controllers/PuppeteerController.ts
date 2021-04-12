@@ -56,7 +56,7 @@ export interface PuppeteerPage {
 /**
  * Mirror of puppeteer Request interface
  */
-interface PuppeteerRequest {
+export interface PuppeteerRequest {
     /**
      * Continues request with optional request overrides.
      * To use this, request interception should be enabled with `page.setRequestInterception`.

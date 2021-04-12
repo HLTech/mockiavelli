@@ -1,12 +1,5 @@
-import {
-    Frame,
-    Headers,
-    HttpMethod,
-    Request as PuppeteerRequest,
-    ResourceType,
-    Response,
-} from 'puppeteer';
 import { parse } from 'url';
+import { PuppeteerRequest } from '../../../src/controllers/PuppeteerController';
 
 /**
  * Test implementation of puppeteer Request interface
@@ -14,11 +7,11 @@ import { parse } from 'url';
 export class PuppeteerRequestMock implements PuppeteerRequest {
     private _postData: string = '';
     private _url: string = '';
-    private _method: HttpMethod = 'GET';
-    private _headers: Headers = {};
-    private _resourceType: ResourceType = 'xhr';
+    private _method: ReturnType<PuppeteerRequest['method']> = 'GET';
+    private _headers = {};
+    private _resourceType: ReturnType<PuppeteerRequest['resourceType']> = 'xhr';
     private _isNavigationRequest: boolean = false;
-    private _frame: Frame | null = null;
+    private _frame = null;
     private _redirectChain: PuppeteerRequestMock[] = [];
     private _response: Response | null = null;
 
@@ -26,11 +19,11 @@ export class PuppeteerRequestMock implements PuppeteerRequest {
         data: Partial<{
             postData: string;
             url: string;
-            method: HttpMethod;
-            headers: Headers;
-            resourceType: ResourceType;
+            method: ReturnType<PuppeteerRequest['method']>;
+            headers: ReturnType<PuppeteerRequest['headers']>;
+            resourceType: ReturnType<PuppeteerRequest['resourceType']>;
             isNavigationRequest: boolean;
-            frame: Frame;
+            frame: ReturnType<PuppeteerRequest['frame']>;
             redirectChain: PuppeteerRequestMock[];
             response: Response;
             origin: string;
