@@ -56,35 +56,14 @@ export interface PuppeteerPage {
 /**
  * Mirror of puppeteer Request interface
  */
-export interface PuppeteerRequest {
-    /**
-     * Continues request with optional request overrides.
-     * To use this, request interception should be enabled with `page.setRequestInterception`.
-     * @throws An exception is immediately thrown if the request interception is not enabled.
-     */
+interface PuppeteerRequest {
     continue(): Promise<void>;
-
-    /**
-     * @returns The `Frame` object that initiated the request, or `null` if navigating to error pages
-     */
     frame(): {
         url(): string;
     } | null;
-
-    /**
-     * An object with HTTP headers associated with the request.
-     * All header names are lower-case.
-     */
     headers(): Record<string, string>;
-
-    /** Returns the request's method (GET, POST, etc.) */
-
     method(): 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE' | 'OPTIONS';
-
-    /** Contains the request's post body, if any. */
     postData(): string | undefined;
-
-    /** Contains the request's resource type as it was perceived by the rendering engine.  */
     resourceType():
         | 'document'
         | 'stylesheet'
@@ -99,16 +78,7 @@ export interface PuppeteerRequest {
         | 'websocket'
         | 'manifest'
         | 'other';
-
-    /**
-     * Fulfills request with given response.
-     * To use this, request interception should be enabled with `page.setRequestInterception`.
-     * @throws An exception is immediately thrown if the request interception is not enabled.
-     * @param response The response options that will fulfill this request.
-     */
     respond(response: PuppeteerRespondOptions): Promise<void>;
-
-    /** Contains the URL of the request. */
     url(): string;
 }
 
@@ -116,15 +86,8 @@ export interface PuppeteerRequest {
  * Mirror of puppeteer Response interface
  */
 interface PuppeteerRespondOptions {
-    /**
-     * Specifies the response status code.
-     * @default 200
-     */
     status?: number;
-    /** Specifies the response headers. */
     headers?: Record<string, string>;
-    /** Specifies the Content-Type response header. */
     contentType?: string;
-    /** Specifies the response body. */
     body?: Buffer | string;
 }

@@ -82,66 +82,23 @@ interface PlaywrightRoute {
  * Mirror of playwright's Response interface
  */
 interface PlaywrightRouteFulfillResponse {
-    /**
-     * Response status code, defaults to `200`.
-     */
     status?: number;
-
-    /**
-     * Optional response headers. Header values will be converted to a string.
-     */
     headers?: { [key: string]: string };
-
-    /**
-     * If set, equals to setting `Content-Type` response header.
-     */
     contentType?: string;
-
-    /**
-     * Optional response body.
-     */
     body?: string | Buffer;
-
-    /**
-     * Optional file path to respond with. The content type will be inferred from file extension. If `path` is a relative path, then it is resolved relative to current working directory.
-     */
     path?: string;
 }
 
 /**
  * Mirror of playwright's Request interface
  */
-export interface PlaywrightRequest {
-    /**
-     * @returns A Frame that initiated this request.
-     */
+interface PlaywrightRequest {
     frame(): {
         url(): string;
     };
-
-    /**
-     * @returns An object with HTTP headers associated with the request. All header names are lower-case.
-     */
     headers(): { [key: string]: string };
-
-    /**
-     * @returns Request's method (GET, POST, etc.)
-     */
     method(): string;
-
-    /**
-     * @returns Request's post body, if any.
-     */
     postData(): null | string;
-
-    /**
-     * Contains the request's resource type as it was perceived by the rendering engine.
-     * ResourceType will be one of the following: `document`, `stylesheet`, `image`, `media`, `font`, `script`, `texttrack`, `xhr`, `fetch`, `eventsource`, `websocket`, `manifest`, `other`.
-     */
     resourceType(): string;
-
-    /**
-     * @returns URL of the request.
-     */
     url(): string;
 }
