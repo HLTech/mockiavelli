@@ -108,9 +108,6 @@ interface PuppeteerRequest {
      */
     respond(response: PuppeteerRespondOptions): Promise<void>;
 
-    /** A matching `Response` object, or `null` if the response has not been received yet. */
-    response(): Response | null;
-
     /** Contains the URL of the request. */
     url(): string;
 }

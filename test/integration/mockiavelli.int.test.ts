@@ -13,7 +13,7 @@ const arg = process.argv.find((arg) => arg.match(cliFlag));
 
 const ctrl = arg ? arg.match(new RegExp(`${cliFlag}=(.*)`))[1] : 'puppeteer';
 
-describe(`Mockiavelli integration (%s)`, () => {
+describe(`Mockiavelli integration`, () => {
     const ctx = setupTestCtx(ctrl);
 
     test.each(METHODS)('matches request with .mock method ', async (METHOD) => {
@@ -55,7 +55,7 @@ describe(`Mockiavelli integration (%s)`, () => {
         }
     );
 
-    test.only('matches request when filter does not define query params but request has', async () => {
+    test('matches request when filter does not define query params but request has', async () => {
         ctx.mockiavelli.mockGET('/example', { status: 200 });
         const result = await ctx.makeRequest('GET', '/example?param=value');
         expect(result.status).toEqual(200);
