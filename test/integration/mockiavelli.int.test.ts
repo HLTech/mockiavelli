@@ -7,14 +7,8 @@ const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
 
 type Methods = 'mockGET' | 'mockPUT' | 'mockPOST' | 'mockDELETE' | 'mockPATCH';
 
-const cliFlag = `--controller`;
-
-const arg = process.argv.find((arg) => arg.match(cliFlag));
-
-const ctrl = arg ? arg.match(new RegExp(`${cliFlag}=(.*)`))[1] : 'puppeteer';
-
-describe(`Mockiavelli integration`, () => {
-    const ctx = setupTestCtx(ctrl);
+describe(`Mockiavelli integration [${process.env.TEST_LIBRARY}]`, () => {
+    const ctx = setupTestCtx(process.env.TEST_LIBRARY);
 
     test.each(METHODS)('matches request with .mock method ', async (METHOD) => {
         ctx.mockiavelli.mock(

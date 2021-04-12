@@ -17,32 +17,36 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - library: "puppeteer"
-                      version: "2"
-                    - library: "puppeteer"
-                      version: "3"
-                    - library: "puppeteer"
-                      version: "4"
-                    - library: "puppeteer"
-                      version: "5"
-                    - library: "puppeteer"
-                      version: "6"
-                    - library: "puppeteer"
-                      version: "7"
-                    - library: "playwright"
-                      version: "1.10"                 
+                    - library: 'puppeteer'
+                      version: '2'
+                    - library: 'puppeteer'
+                      version: '3'
+                    - library: 'puppeteer'
+                      version: '4'
+                    - library: 'puppeteer'
+                      version: '5'
+                    - library: 'puppeteer'
+                      version: '6'
+                    - library: 'puppeteer'
+                      version: '7'
+                    - library: 'playwright'
+                      version: '1.10'
         steps:
             - uses: actions/checkout@v2
             - name: Use Node.js
               uses: actions/setup-node@v1
               with:
                   node-version: 14.x
-            - run: npm ci
-            - run: npm run build
-            - name: Run tests
+            - name: Install
               run: |
+                  npm ci
                   npm install ${{matrix.library}}@${{matrix.version}}
-                  npm test -- --controller=${{matrix.library}}
+            - name: Build
+              run: npm run build
+            - name: Run tests
+              env:
+                  TEST_LIBRARY: ${{matrix.library}}
+              run: npm test
             - name: Archive build artifacts
               uses: actions/upload-artifact@v2
               with:
