@@ -5,7 +5,7 @@ name: Node.js CI
 
 on:
     push:
-        branches: '*'
+        branches: [master]
     pull_request:
         branches: [master]
 
@@ -29,6 +29,8 @@ jobs:
                       version: '6'
                     - library: 'puppeteer'
                       version: '7'
+                    - library: 'puppeteer'
+                      version: '8'
                     - library: 'playwright'
                       version: '1.10'
         steps:
@@ -47,11 +49,6 @@ jobs:
               env:
                   TEST_LIBRARY: ${{matrix.library}}
               run: npm test
-            - name: Archive build artifacts
-              uses: actions/upload-artifact@v2
-              with:
-                  name: build
-                  path: dist
 
     release:
         name: Release
@@ -67,11 +64,8 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: 14.x
-            - name: Download build artifacts
-              uses: actions/download-artifact@v2
-              with:
-                  name: build
-                  path: dist
+            - name: Build
+              run: npm run build
             - name: Release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
