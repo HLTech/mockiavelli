@@ -1,4 +1,4 @@
-import { chromium, BrowserContext, Page, Browser } from 'playwright-chromium';
+import { chromium, BrowserContext, Page, Browser } from 'playwright';
 import { Mockiavelli } from '../../../src';
 import { makeRequest } from '../test-helpers/make-request';
 
