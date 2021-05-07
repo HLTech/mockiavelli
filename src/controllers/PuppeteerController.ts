@@ -1,4 +1,3 @@
-import { Page, Request } from 'puppeteer';
 import { parse } from 'url';
 import {
     BrowserController,
@@ -9,7 +8,7 @@ import { getOrigin, tryJsonParse } from '../utils';
 
 export class PuppeteerController implements BrowserController {
     constructor(
-        private readonly page: Page,
+        private readonly page: PuppeteerPage,
         private readonly onRequest: BrowserRequestHandler
     ) {}
 
@@ -23,7 +22,7 @@ export class PuppeteerController implements BrowserController {
         await this.page.off('request', this.requestHandler);
     }
 
-    private requestHandler = (request: Request) => {
+    private requestHandler = (request: PuppeteerRequest) => {
         this.onRequest(
             this.toBrowserRequest(request),
             (response) => request.respond(response),
@@ -31,7 +30,7 @@ export class PuppeteerController implements BrowserController {
         );
     };
 
-    private toBrowserRequest(request: Request): BrowserRequest {
+    private toBrowserRequest(request: PuppeteerRequest): BrowserRequest {
         // TODO find a better alternative for url.parse
         const { pathname, query, protocol, host } = parse(request.url(), true);
 
@@ -51,7 +50,55 @@ export class PuppeteerController implements BrowserController {
     /**
      * Obtain request origin url from originating frame url
      */
-    private getRequestOrigin(request: Request) {
+    private getRequestOrigin(request: PuppeteerRequest) {
         return getOrigin(request.frame()?.url());
     }
+}
+
+/**
+ * Mirror of puppeteer Page interface
+ */
+export interface PuppeteerPage {
+    setRequestInterception(enabled: boolean): Promise<void>;
+    on(eventName: 'request', handler: (e: PuppeteerRequest) => void): any;
+    off(eventName: 'request', handler: (e: PuppeteerRequest) => void): any;
+}
+
+/**
+ * Mirror of puppeteer Request interface
+ */
+export interface PuppeteerRequest {
+    continue(): Promise<void>;
+    frame(): {
+        url(): string;
+    } | null;
+    headers(): Record<string, string>;
+    method(): 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE' | 'OPTIONS';
+    postData(): string | undefined;
+    resourceType():
+        | 'document'
+        | 'stylesheet'
+        | 'image'
+        | 'media'
+        | 'font'
+        | 'script'
+        | 'texttrack'
+        | 'xhr'
+        | 'fetch'
+        | 'eventsource'
+        | 'websocket'
+        | 'manifest'
+        | 'other';
+    respond(response: PuppeteerRespondOptions): Promise<void>;
+    url(): string;
+}
+
+/**
+ * Mirror of puppeteer Response interface
+ */
+interface PuppeteerRespondOptions {
+    status?: number;
+    headers?: Record<string, string>;
+    contentType?: string;
+    body?: Buffer | string;
 }

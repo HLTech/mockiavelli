@@ -5,11 +5,9 @@
     Request mocking for Puppeteer and Playwright
 </h2>
 
----
+[![npm](https://img.shields.io/npm/v/mockiavelli)](https://www.npmjs.com/package/mockiavelli) [![Node.js CI](https://github.com/HLTech/mockiavelli/actions/workflows/node.js.yml/badge.svg)](https://github.com/HLTech/mockiavelli/actions/workflows/node.js.yml)
 
-[![npm](https://img.shields.io/npm/v/mockiavelli)](https://www.npmjs.com/package/mockiavelli) [![travis build](https://img.shields.io/travis/hltech/mockiavelli)](https://travis-ci.org/github/HLTech/mockiavelli)
-
-Mockiavelli is HTTP request mocking library for [Puppeteer](http://pptr.dev/) and [Playwright](https://github.com/microsoft/playwright/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
+Mockiavelli is HTTP request mocking library for [Puppeteer](http://pptr.dev/) and [Playwright](https://playwright.dev/). It was created to enable effective testing of Single Page Apps in isolation and independently from API services.
 
 Main features
 
@@ -42,6 +40,7 @@ Main features
     -   [Not matched requests](#not-matched-requests)
     -   [Debug mode](#debug-mode)
 -   [API](#api)
+
     -   [`Mockiavelli`](#Mockiavelli)
     -   [`Mock`](#Mock)
 
@@ -57,12 +56,14 @@ or if you are using yarn:
 yarn add mockiavelli -D
 ```
 
--   Mockiavelli requires [Puppeteer](https://pptr.dev/) or [Playwright](https://www.npmjs.com/package/playwright/) which need to be installed separately.
+-   Mockiavelli requires one of the following to be installed separately:
+    -   [Puppeteer](https://pptr.dev/) (in versions 2.x - 8.x)
+    -   [Playwright](https://playwright.dev/) (in version 1.x)
 -   If you're using [jest](jestjs.io/) we also recommend to install [jest-puppeteer](https://github.com/smooth-code/jest-puppeteer) or [jest-playwright](https://www.npmjs.com/package/jest-playwright-preset)
 
 ## Getting started <a name="getting-started"/>
 
-To start using Mockiavelli, you need to instantiate it by providing it a `page` - instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
+To start using Mockiavelli, you need to instantiate it by providing it a `page` - instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://playwright.dev/docs/api/class-page)
 
 ```typescript
 import { Mockiavelli } from 'mockiavelli';
@@ -379,7 +380,7 @@ If request does not match any mocks, it will be responded with `404 Not Found`.
 
 ###### Arguments
 
--   `page` _(Page)_ instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page)
+-   `page` _(Page)_ instance of [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) or [Playwright Page](https://playwright.dev/docs/api/class-page)
 -   `options` _(object)_ configuration options
     -   `baseUrl: string` specify the API base url, which will be added to every mocked request url
     -   `debug: boolean` turns debug mode with logging to console (default: `false`)

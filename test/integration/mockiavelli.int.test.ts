@@ -7,10 +7,10 @@ const METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
 
 type Methods = 'mockGET' | 'mockPUT' | 'mockPOST' | 'mockDELETE' | 'mockPATCH';
 
-const CONTROLLERS = ['playwright', 'puppeteer'];
+const TEST_LIBRARY = process.env.TEST_LIBRARY || 'puppeteer';
 
-describe.each(CONTROLLERS)(`Mockiavelli integration (%s)`, (controller) => {
-    const ctx = setupTestCtx(controller);
+describe(`Mockiavelli integration [${TEST_LIBRARY}]`, () => {
+    const ctx = setupTestCtx(TEST_LIBRARY);
 
     test.each(METHODS)('matches request with .mock method ', async (METHOD) => {
         ctx.mockiavelli.mock(

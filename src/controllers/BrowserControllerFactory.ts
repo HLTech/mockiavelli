@@ -1,13 +1,11 @@
-import * as puppeteer from 'puppeteer';
-import playwright from 'playwright-chromium';
-import { PlaywrightController } from './PlaywrightController';
-import { PuppeteerController } from './PuppeteerController';
+import { PlaywrightController, PlaywrightPage } from './PlaywrightController';
+import { PuppeteerController, PuppeteerPage } from './PuppeteerController';
 import { BrowserController, BrowserRequestHandler } from './BrowserController';
 
 /**
  * Type of supported page objects
  */
-export type BrowserPage = puppeteer.Page | playwright.Page;
+export type BrowserPage = PlaywrightPage | PuppeteerPage;
 
 export class BrowserControllerFactory {
     /**
@@ -29,11 +27,11 @@ export class BrowserControllerFactory {
         }
     }
 
-    private static isPlaywrightPage(page: any): page is playwright.Page {
+    private static isPlaywrightPage(page: any): page is PlaywrightPage {
         return typeof page['route'] === 'function';
     }
 
-    private static isPuppeteerPage(page: any): page is puppeteer.Page {
+    private static isPuppeteerPage(page: any): page is PuppeteerPage {
         return typeof page['setRequestInterception'] === 'function';
     }
 }
