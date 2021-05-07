@@ -1,25 +1,34 @@
 import {
     BrowserController,
-    BrowserRequestHandler,
-    ResponseData,
     BrowserRequest,
+    BrowserRequestHandler,
     BrowserRequestType,
+    ResponseData,
 } from './BrowserController';
 import { getOrigin, tryJsonParse } from '../utils';
 import { parse } from 'url';
 
 export class PlaywrightController implements BrowserController {
-    constructor(private readonly page: PlaywrightPage) {}
+    constructor(
+        private readonly page: PlaywrightPage,
+        private readonly onRequest: BrowserRequestHandler
+    ) {}
 
-    async startInterception(onRequest: BrowserRequestHandler) {
-        await this.page.route('**/*', (route: PlaywrightRoute) => {
-            onRequest(
-                this.toBrowserRequest(route.request()),
-                (data) => this.respond(route, data),
-                () => this.skip(route)
-            );
-        });
+    public async startInterception() {
+        await this.page.route('**/*', this.requestHandler);
     }
+
+    public async stopInterception() {
+        await this.page.unroute('**/*', this.requestHandler);
+    }
+
+    private requestHandler = (route: PlaywrightRoute) => {
+        this.onRequest(
+            this.toBrowserRequest(route.request()),
+            (data) => this.respond(route, data),
+            () => this.skip(route)
+        );
+    };
 
     private toBrowserRequest(request: PlaywrightRequest): BrowserRequest {
         // TODO find a better alternative for url.parse
@@ -64,6 +73,10 @@ export class PlaywrightController implements BrowserController {
  */
 export interface PlaywrightPage {
     route(
+        url: string,
+        handler: (route: PlaywrightRoute, request: PlaywrightRequest) => void
+    ): Promise<void>;
+    unroute(
         url: string,
         handler: (route: PlaywrightRoute, request: PlaywrightRequest) => void
     ): Promise<void>;

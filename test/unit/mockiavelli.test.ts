@@ -1,4 +1,5 @@
 import { Mockiavelli, Mock } from '../../src';
+import { BrowserPage } from '../../src/controllers/BrowserControllerFactory';
 import { createMockPage } from './fixtures/page';
 jest.mock('../../src/mock');
 jest.mock('../../src/controllers/BrowserControllerFactory', () => ({
@@ -32,12 +33,14 @@ describe('Mockiavelli', () => {
         const mockResponse = { status: 404, body: {} };
 
         beforeEach(async () => {
-            mockiavelli = new Mockiavelli();
+            mockiavelli = new Mockiavelli({} as BrowserPage);
         });
 
         describe('mock()', () => {
             test('should add API base url to request matcher', () => {
-                const mockiavelli = new Mockiavelli({ baseUrl: '/api/foo' });
+                const mockiavelli = new Mockiavelli({} as BrowserPage, {
+                    baseUrl: '/api/foo',
+                });
                 mockiavelli.mock({ url: '/boo', method: 'GET' }, mockResponse);
                 expect(Mock).toHaveBeenCalledWith(
                     { url: '/api/foo/boo', method: 'GET' },

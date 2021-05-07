@@ -7,18 +7,28 @@ import {
 import { getOrigin, tryJsonParse } from '../utils';
 
 export class PuppeteerController implements BrowserController {
-    constructor(private readonly page: PuppeteerPage) {}
+    constructor(
+        private readonly page: PuppeteerPage,
+        private readonly onRequest: BrowserRequestHandler
+    ) {}
 
-    async startInterception(onRequest: BrowserRequestHandler) {
+    public async startInterception() {
         await this.page.setRequestInterception(true);
-        this.page.on('request', (request) => {
-            onRequest(
-                this.toBrowserRequest(request),
-                (response) => request.respond(response),
-                () => request.continue()
-            );
-        });
+        await this.page.on('request', this.requestHandler);
     }
+
+    public async stopInterception() {
+        await this.page.setRequestInterception(false);
+        await this.page.off('request', this.requestHandler);
+    }
+
+    private requestHandler = (request: PuppeteerRequest) => {
+        this.onRequest(
+            this.toBrowserRequest(request),
+            (response) => request.respond(response),
+            () => request.continue()
+        );
+    };
 
     private toBrowserRequest(request: PuppeteerRequest): BrowserRequest {
         // TODO find a better alternative for url.parse
@@ -51,6 +61,7 @@ export class PuppeteerController implements BrowserController {
 export interface PuppeteerPage {
     setRequestInterception(enabled: boolean): Promise<void>;
     on(eventName: 'request', handler: (e: PuppeteerRequest) => void): any;
+    off(eventName: 'request', handler: (e: PuppeteerRequest) => void): any;
 }
 
 /**

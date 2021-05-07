@@ -706,4 +706,20 @@ describe(`Mockiavelli integration [${TEST_LIBRARY}]`, () => {
         });
         await mock.waitForRequestsCount(2);
     });
+
+    test('disable() method disables mocking of requests', async () => {
+        const mockedFun = jest.fn().mockReturnValue({ status: 200 });
+        await ctx.mockiavelli.mockGET('/example', mockedFun);
+
+        const response1 = await ctx.makeRequest('GET', '/example');
+        expect(response1.status).toEqual(200);
+
+        await ctx.mockiavelli.disable();
+        const response2 = await ctx.makeRequest('GET', '/example');
+        expect(response2.status).toEqual(404);
+
+        await ctx.mockiavelli.enable();
+        const response3 = await ctx.makeRequest('GET', '/example');
+        expect(response3.status).toEqual(200);
+    });
 });

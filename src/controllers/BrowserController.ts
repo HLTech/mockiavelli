@@ -4,7 +4,8 @@ import { QueryObject } from '../types';
  * Interface used by Mockiavelli to communicate with browser automation libraries
  */
 export interface BrowserController {
-    startInterception(onRequest: BrowserRequestHandler): Promise<void>;
+    startInterception(): Promise<void>;
+    stopInterception(): Promise<void>;
 }
 
 /**
