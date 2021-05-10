@@ -7,6 +7,7 @@ import {
     MockedResponseObject,
     RequestMatcher,
     PathParameters,
+    MatcherHttpMethod,
 } from './types';
 import { waitFor, TimeoutError, nth } from './utils';
 import isEqual from 'lodash.isequal';
@@ -23,7 +24,7 @@ let debugId = 1;
 
 export class Mock {
     private matcher: {
-        method: string;
+        method: MatcherHttpMethod;
         hostname: string | undefined;
         path: string;
         query: QueryObject;
@@ -135,7 +136,10 @@ export class Mock {
     }
 
     private getRequestMatch(request: BrowserRequest): MatchedRequest | null {
-        if (request.method !== this.matcher.method) {
+        if (
+            request.method !== this.matcher.method &&
+            this.matcher.method !== 'ALL'
+        ) {
             this.debugMiss('method', request.method, this.matcher.method);
             return null;
         }

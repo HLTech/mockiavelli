@@ -14,6 +14,7 @@ import {
     MockOptions,
     RequestMatcher,
     ShorthandRequestMatcher,
+    URLString,
 } from './types';
 import {
     addMockByPriority,
@@ -72,13 +73,14 @@ export class Mockiavelli {
     }
 
     public mock<TResponseBody = any>(
-        matcher: RequestMatcher,
+        matcher: RequestMatcher | URLString,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
+        const matcherObj = createRequestMatcher(matcher, 'ALL');
         const matcherWithBaseUrl = {
-            ...matcher,
-            url: this.baseUrl + matcher.url,
+            ...matcherObj,
+            url: this.baseUrl + matcherObj.url,
         };
         const mock = new Mock(matcherWithBaseUrl, response, { ...options });
         addMockByPriority(this.mocks, mock);
@@ -86,7 +88,7 @@ export class Mockiavelli {
     }
 
     public mockGET<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher,
+        matcher: ShorthandRequestMatcher | string,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -98,7 +100,7 @@ export class Mockiavelli {
     }
 
     public mockPOST<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher,
+        matcher: ShorthandRequestMatcher | string,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -110,7 +112,7 @@ export class Mockiavelli {
     }
 
     public mockPUT<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher,
+        matcher: ShorthandRequestMatcher | string,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -122,7 +124,7 @@ export class Mockiavelli {
     }
 
     public mockDELETE<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher,
+        matcher: ShorthandRequestMatcher | string,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -134,7 +136,7 @@ export class Mockiavelli {
     }
 
     public mockPATCH<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher,
+        matcher: ShorthandRequestMatcher | string,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
