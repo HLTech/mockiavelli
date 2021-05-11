@@ -1,19 +1,19 @@
 export type QueryObject = Record<string, string | string[] | undefined>;
 
-export interface RequestMatcher {
-    method: HttpMethod;
-    url: string;
+export type URLString = string;
+
+export type RequestMatcher = {
+    method: MatcherHttpMethod;
+    url: URLString;
     query?: QueryObject;
     body?: any;
-}
+};
 
-export type ShorthandRequestMatcher =
-    | {
-          url: string;
-          query?: QueryObject;
-          body?: any;
-      }
-    | string;
+export type ShorthandRequestMatcher = {
+    url: URLString;
+    query?: QueryObject;
+    body?: any;
+};
 
 export type MockedResponse<TResponseBody = any> =
     | ((req: MatchedRequest) => MockedResponseObject<TResponseBody>)
@@ -43,3 +43,11 @@ export interface MockOptions {
 }
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export type MatcherHttpMethod =
+    | 'ALL'
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'PATCH';

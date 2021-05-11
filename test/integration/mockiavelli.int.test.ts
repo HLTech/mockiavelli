@@ -25,6 +25,15 @@ describe(`Mockiavelli integration [${TEST_LIBRARY}]`, () => {
     });
 
     test.each(METHODS)(
+        `matches %s request when using .mock('/path')`,
+        async (METHOD) => {
+            ctx.mockiavelli.mock('/example', { status: 200 });
+            const result = await ctx.makeRequest(METHOD, '/example');
+            expect(result.status).toEqual(200);
+        }
+    );
+
+    test.each(METHODS)(
         'matches request with .mock%s() method and URL string',
         async (METHOD) => {
             ctx.mockiavelli[('mock' + METHOD) as Methods]('/example', {
@@ -63,7 +72,7 @@ describe(`Mockiavelli integration [${TEST_LIBRARY}]`, () => {
             { method: 'GET', url: '/example' },
             { status: 200, body: 'ok' }
         );
-        const response = await ctx.makeRequest('POST', '/example?param=value');
+        const response = await ctx.makeRequest('POST', '/example');
         expect(response.body).not.toEqual('ok');
     });
 

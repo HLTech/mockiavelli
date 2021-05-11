@@ -142,32 +142,33 @@ test('Sign-up form', async () => {
 
 ### URL and method matching <a name="url-and-method-matching"/>
 
-Request can be matched by:
+Request can most easily be mocked by calling `mockiavelli.mock<HTTP_METHOD>` with endpoint URL:
 
--   providing URL string to `mockiavelli.mock<HTTP_METHOD>` method:
+```typescript
+mockiavelli.mockGET('/api/users', { status: 200, body: [] });
+// GET /api/users => 200
 
-    ```typescript
-    mockiavelli.mockGET('/api/users?age=30', {status: 200, body: [....]})
-    ```
+mockiavelli.mockPOST('/api/users', { status: 201 });
+// POST /api/users => 200
+```
 
--   providing matcher object to `mockiavelli.mock<HTTP_METHOD>` method
+Alternatively you can provide HTTP method and URL as object to `mockiavelli.mock`:
 
-    ```typescript
-    mockiavelli.mockGET({
-        url: '/api/users',
-        query: { age: '30' }
-    }, {status: 200, body: [....]})
-    ```
+```typescript
+mockiavelli.mock(
+    { method: 'GET', url: '/api/users' },
+    { status: 200, body: [] }
+);
+// GET /api/users => 200
+```
 
--   providing full matcher object `mockiavelli.mock` method
+If HTTP method is not specified, any request that matches provided URL will be mocked.
 
-    ```typescript
-    mockiavelli.mock({
-        method: 'GET',
-        url: '/api/users',
-        query: { age: '30' }
-    }, {status: 200, body: [...]})
-    ```
+```typescript
+mockiavelli.mock('/api/users', { status: 500 });
+// GET /api/users => 500
+// POST /api/users => 500
+```
 
 ### Path parameters matching <a name="path-parameters-matching"/>
 
@@ -185,8 +186,6 @@ const getUserMock = mockiavelli.mockGET('/api/users/:userId', { status: 200 });
 console.log(await getUserMock.waitForRequest());
 // { params: {userId : "12345"}, path: "/api/users/12345", ... }
 ```
-
-Mockiavelli uses
 
 ### Query params matching <a name="query-parameters-matching"/>
 
@@ -406,9 +405,9 @@ Respond all requests of matching `matcher` with provided `response`.
 
 ###### Arguments
 
--   `matcher` _(object)_ matches request with mock.
-    -   `method: string` - any valid HTTP method
+-   `matcher` _(string | object)_ URL string or object with following properties:
     -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
+    -   `method?: string` - any valid HTTP method. If not provided, will match any HTTP method.
     -   `query?: object` object literal which accepts strings and arrays of strings as values, transformed to queryString
 -   `response` _(object | function)_ content of mocked response. Can be a object or a function returning object with following properties:
     -   `status: number`
