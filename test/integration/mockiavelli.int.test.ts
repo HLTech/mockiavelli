@@ -29,7 +29,7 @@ describe(`Mockiavelli integration [${TEST_LIBRARY}]`, () => {
         async (METHOD) => {
             ctx.mockiavelli.mock('/example', { status: 200 });
             const result = await ctx.makeRequest(METHOD, '/example');
-            expect(result.body).toEqual(200);
+            expect(result.status).toEqual(200);
         }
     );
 
