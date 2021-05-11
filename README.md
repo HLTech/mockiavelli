@@ -407,7 +407,7 @@ Respond all requests of matching `matcher` with provided `response`.
 
 -   `matcher` _(string | object)_ URL string or object with following properties:
     -   `url: string` - can be provided as path (`/api/endpoint`) or full URL (`http://example.com/endpoint`) for CORS requests. Supports path parameters (`/api/users/:user_id`)
-    -   `method?: string` - any valid HTTP method. If not provided,
+    -   `method?: string` - any valid HTTP method. If not provided, will match any HTTP method.
     -   `query?: object` object literal which accepts strings and arrays of strings as values, transformed to queryString
 -   `response` _(object | function)_ content of mocked response. Can be a object or a function returning object with following properties:
     -   `status: number`
