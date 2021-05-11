@@ -88,7 +88,7 @@ export class Mockiavelli {
     }
 
     public mockGET<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher | string,
+        matcher: ShorthandRequestMatcher | URLString,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -100,7 +100,7 @@ export class Mockiavelli {
     }
 
     public mockPOST<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher | string,
+        matcher: ShorthandRequestMatcher | URLString,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -112,7 +112,7 @@ export class Mockiavelli {
     }
 
     public mockPUT<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher | string,
+        matcher: ShorthandRequestMatcher | URLString,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -124,7 +124,7 @@ export class Mockiavelli {
     }
 
     public mockDELETE<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher | string,
+        matcher: ShorthandRequestMatcher | URLString,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
@@ -136,7 +136,7 @@ export class Mockiavelli {
     }
 
     public mockPATCH<TResponseBody = any>(
-        matcher: ShorthandRequestMatcher | string,
+        matcher: ShorthandRequestMatcher | URLString,
         response: MockedResponse<TResponseBody>,
         options?: Partial<MockOptions>
     ): Mock {
