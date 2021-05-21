@@ -20,7 +20,7 @@
     "dependencies": {
         "debug": "^4.1.1",
         "lodash.isequal": "^4.5.0",
-        "path-to-regexp": "^6.1.0"
+        "url-pattern": "^1.0.3"
     },
     "devDependencies": {
         "@semantic-release/changelog": "^5.0.1",

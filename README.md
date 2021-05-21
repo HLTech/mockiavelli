@@ -29,6 +29,7 @@ Main features
     -   [URL and method matching](#url-and-method-matching)
     -   [Path parameters matching](#path-parameters-matching)
     -   [Query params matching](#query-parameters-matching)
+    -   [Wildcard matching](#wildcard-matching)
     -   [Request assertion](#request-assertion)
     -   [One-time mocks](#one-time-mocks)
     -   [Matching order](#matching-order)
@@ -172,7 +173,7 @@ mockiavelli.mock('/api/users', { status: 500 });
 
 ### Path parameters matching <a name="path-parameters-matching"/>
 
-Path parameters in the URL can be matched using `:param` notation, thanks to [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) library.
+Path parameters in the URL can be matched using `:param` notation, thanks to [url-pattern](https://www.npmjs.com/package/url-pattern) library.
 
 If mock matches the request, those params are exposed in `request.params` property.
 
@@ -180,7 +181,6 @@ If mock matches the request, those params are exposed in `request.params` proper
 const getUserMock = mockiavelli.mockGET('/api/users/:userId', { status: 200 });
 
 // GET /api/users/1234 => 200
-// GET /api/users => 404
 // GET /api/users/1234/categories => 404
 
 console.log(await getUserMock.waitForRequest());
@@ -208,6 +208,31 @@ mockiavelli.mockGET(
 );
 
 // GET /api/users?status=active&status=blocked  => 200
+```
+
+### Wildcard matching
+
+Use "\*" wildcard in URL to match any portion of path.
+
+```typescript
+mockiavelli.mockGET('/api/users/*', { status: 200 });
+// GET /api/users/123 => 200
+// GET /api/users/123/comments  => 200
+```
+
+It can be mixed with both path and query parameters matching. For the latter provide matcher as object to avoid wildcard matching query part of the URL.
+
+```typescript
+mockiavelli.mockGET('*/api/users/:userId', { status: 200 });
+// GET /v1/api/users/123 => 200
+// GET /v2/api/users/123 => 200
+
+mockiavelli.mockGET(
+    { url: '/api/users/*', query: { name: 'Bob' } },
+    { status: 200 }
+);
+// GET /api/users/?name=Bob => 200
+// GET /api/users/active?name=Bob => 200
 ```
 
 ### Request assertion <a name="request-assertion"/>
