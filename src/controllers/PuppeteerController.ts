@@ -73,7 +73,7 @@ export interface PuppeteerRequest {
         url(): string;
     } | null;
     headers(): Record<string, string>;
-    method(): 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE' | 'OPTIONS';
+    method(): string;
     postData(): string | undefined;
     resourceType():
         | 'document'

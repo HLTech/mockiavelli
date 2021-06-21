@@ -31,6 +31,10 @@ jobs:
                       version: '7'
                     - library: 'puppeteer'
                       version: '8'
+                    - library: 'puppeteer'
+                      version: '9'
+                    - library: 'puppeteer'
+                      version: '10'
                     - library: 'playwright'
                       version: '1.10'
         steps:
