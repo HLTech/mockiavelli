@@ -7,12 +7,13 @@ import {
     MockedResponseObject,
     RequestMatcher,
     PathParameters,
+    MatcherHttpMethod,
 } from './types';
 import { waitFor, TimeoutError, nth } from './utils';
 import isEqual from 'lodash.isequal';
 import { parse } from 'url';
 import { stringify } from 'querystring';
-import { match, MatchFunction } from 'path-to-regexp';
+import UrlPattern from 'url-pattern';
 import { BrowserRequest } from './controllers/BrowserController';
 
 const debug = dbg('mockiavelli:mock');
@@ -23,11 +24,11 @@ let debugId = 1;
 
 export class Mock {
     private matcher: {
-        method: string;
+        method: MatcherHttpMethod;
         hostname: string | undefined;
         path: string;
         query: QueryObject;
-        pathMatch: MatchFunction<PathParameters>;
+        pathMatch: UrlPattern;
         body: any;
     };
     private response: MockedResponse;
@@ -135,7 +136,10 @@ export class Mock {
     }
 
     private getRequestMatch(request: BrowserRequest): MatchedRequest | null {
-        if (request.method !== this.matcher.method) {
+        if (
+            request.method !== this.matcher.method &&
+            this.matcher.method !== 'ALL'
+        ) {
             this.debugMiss('method', request.method, this.matcher.method);
             return null;
         }
@@ -151,9 +155,11 @@ export class Mock {
             return null;
         }
 
-        const pathMatch = this.matcher.pathMatch(request.path);
+        const pathParameters: PathParameters | null = this.matcher.pathMatch.match(
+            request.path
+        );
 
-        if (!pathMatch) {
+        if (!pathParameters) {
             this.debugMiss(
                 'url',
                 request.path || `Request path missing`,
@@ -189,7 +195,7 @@ export class Mock {
             method: request.method,
             body: request.body,
             headers: request.headers,
-            params: pathMatch.params,
+            params: pathParameters,
         };
     }
 
@@ -203,7 +209,7 @@ export class Mock {
             hostname: hasHostname ? `${protocol}//${host}` : undefined,
             query: matcher.query ? matcher.query : query,
             path: pathname ?? '',
-            pathMatch: match<PathParameters>(pathname ?? ''),
+            pathMatch: new UrlPattern(pathname ?? ''),
             body: matcher.body,
         };
     }

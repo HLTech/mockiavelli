@@ -1,4 +1,9 @@
-import { HttpMethod, RequestMatcher, ShorthandRequestMatcher } from './types';
+import {
+    MatcherHttpMethod,
+    RequestMatcher,
+    ShorthandRequestMatcher,
+    URLString,
+} from './types';
 import { BrowserRequest } from './controllers/BrowserController';
 import { parse } from 'url';
 
@@ -62,8 +67,8 @@ export function addMockByPriority<T extends { options: { priority: number } }>(
 }
 
 export function createRequestMatcher(
-    input: ShorthandRequestMatcher,
-    method: HttpMethod
+    input: ShorthandRequestMatcher | RequestMatcher | URLString,
+    method: MatcherHttpMethod
 ): RequestMatcher {
     if (typeof input === 'string') {
         return {
