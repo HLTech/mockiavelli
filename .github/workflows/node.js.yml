@@ -52,6 +52,7 @@ jobs:
             - name: Run tests
               env:
                   TEST_LIBRARY: ${{matrix.library}}
+                  TEST_LIBRARY_VERSION: ${{matrix.version}}
               run: npm test
 
     release:
