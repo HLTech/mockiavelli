@@ -26,6 +26,15 @@ describe(`Mockiavelli integration [${TEST_LIBRARY}@${TEST_LIBRARY_VERSION}]`, ()
     });
 
     test.each(METHODS)(
+        `matches %s request when using .mock('/path')`,
+        async (METHOD) => {
+            ctx.mockiavelli.mock('/example', { status: 200 });
+            const result = await ctx.makeRequest(METHOD, '/example');
+            expect(result.status).toEqual(200);
+        }
+    );
+
+    test.each(METHODS)(
         'matches request with .mock%s() method and URL string',
         async (METHOD) => {
             ctx.mockiavelli[('mock' + METHOD) as Methods]('/example', {
@@ -64,7 +73,7 @@ describe(`Mockiavelli integration [${TEST_LIBRARY}@${TEST_LIBRARY_VERSION}]`, ()
             { method: 'GET', url: '/example' },
             { status: 200, body: 'ok' }
         );
-        const response = await ctx.makeRequest('POST', '/example?param=value');
+        const response = await ctx.makeRequest('POST', '/example');
         expect(response.body).not.toEqual('ok');
     });
 
@@ -141,6 +150,63 @@ describe(`Mockiavelli integration [${TEST_LIBRARY}@${TEST_LIBRARY_VERSION}]`, ()
         );
         const response = await ctx.makeRequest('GET', '/example?param=value');
         expect(response.status).toEqual(200);
+    });
+
+    test('wildcard matching - postfix', async () => {
+        ctx.mockiavelli.mock('/example/*', { status: 200 });
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await expect(
+            ctx.makeRequest('GET', '/example/')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/example/foo')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/example/foo/bar.json')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/not-matching/')
+        ).resolves.toMatchObject({ status: 404 });
+    });
+
+    test('wildcard matching - prefix', async () => {
+        ctx.mockiavelli.mock('*/example/', { status: 200 });
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await expect(
+            ctx.makeRequest('GET', '/example/')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/api/example/')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/v1/api/example/')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/not-matching/')
+        ).resolves.toMatchObject({ status: 404 });
+    });
+
+    test('wildcard matching - combined with query string', async () => {
+        ctx.mockiavelli.mockGET(
+            { url: '/example/*', query: { param: 'value' } },
+            { status: 200 }
+        );
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await expect(
+            ctx.makeRequest('GET', '/example/?param=value')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/example/path/?param=value')
+        ).resolves.toMatchObject({ status: 200 });
+        await expect(
+            ctx.makeRequest('GET', '/example/')
+        ).resolves.toMatchObject({ status: 404 });
+        await expect(
+            ctx.makeRequest('GET', '/example/?param=not_matching')
+        ).resolves.toMatchObject({ status: 404 });
     });
 
     test('matches request by query - ignores params order', async () => {
