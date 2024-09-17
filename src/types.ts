@@ -25,7 +25,7 @@ export interface MockedResponseObject<TResponseBody = any> {
     body?: TResponseBody;
 }
 
-export type PathParameters = Record<string, string | number>;
+export type PathParameters = Record<string, string | string[]>;
 
 export interface MatchedRequest {
     url: string;
